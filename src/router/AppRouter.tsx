@@ -2,6 +2,8 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import AppShell from '../components/layout/AppShell';
 import DashboardPage from '../pages/DashboardPage';
 import PlaceholderPage from '../pages/PlaceholderPage';
+import CitizenDashboard from '../pages/citizen/CitizenDashboard';
+import ReportPotholePage from '../pages/citizen/ReportPotholePage';
 
 export default function AppRouter() {
   return (
@@ -11,16 +13,16 @@ export default function AppRouter() {
           <Route index element={<DashboardPage />} />
 
           {/* Citizen */}
-          <Route path="/my-reports" element={<PlaceholderPage name="My Reports" />} />
-          <Route path="/report" element={<PlaceholderPage name="Report a Pothole" />} />
+          <Route path="/my-reports" element={<CitizenDashboard />} />
+          <Route path="/report"     element={<ReportPotholePage />} />
 
           {/* Authority */}
-          <Route path="/complaints" element={<PlaceholderPage name="All Complaints" />} />
+          <Route path="/complaints"     element={<PlaceholderPage name="All Complaints" />} />
           <Route path="/complaints/:id" element={<PlaceholderPage name="Complaint Detail" />} />
-          <Route path="/flagged" element={<PlaceholderPage name="Flagged Cases" />} />
+          <Route path="/flagged"        element={<PlaceholderPage name="Flagged Cases" />} />
 
           {/* Contractor */}
-          <Route path="/jobs" element={<PlaceholderPage name="My Jobs" />} />
+          <Route path="/jobs"          element={<PlaceholderPage name="My Jobs" />} />
           <Route path="/submit-repair" element={<PlaceholderPage name="Submit Repair" />} />
 
           {/* Common */}

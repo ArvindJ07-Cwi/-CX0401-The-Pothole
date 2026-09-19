@@ -6,6 +6,7 @@ import CitizenDashboard from '../pages/citizen/CitizenDashboard';
 import ReportPotholePage from '../pages/citizen/ReportPotholePage';
 import ContractorDashboard from '../pages/contractor/ContractorDashboard';
 import SubmitRepairPage from '../pages/contractor/SubmitRepairPage';
+import ComplaintDetailPage from '../pages/authority/ComplaintDetailPage';
 
 export default function AppRouter() {
   return (
@@ -20,7 +21,7 @@ export default function AppRouter() {
 
           {/* Authority */}
           <Route path="/complaints"     element={<PlaceholderPage name="All Complaints" />} />
-          <Route path="/complaints/:id" element={<PlaceholderPage name="Complaint Detail" />} />
+          <Route path="/complaints/:id" element={<ComplaintDetailPage />} />
           <Route path="/flagged"        element={<PlaceholderPage name="Flagged Cases" />} />
 
           {/* Contractor */}

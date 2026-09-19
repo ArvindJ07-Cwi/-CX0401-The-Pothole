@@ -9,17 +9,17 @@ import StatusBadge from '../ui/StatusBadge';
 import type { Complaint, ComplaintStatus, Severity } from '../../types';
 
 const SEVERITY_COLOR: Record<string, string> = {
-  critical: 'bg-neutral-900',
-  high:     'bg-neutral-600',
-  medium:   'bg-neutral-400',
-  low:      'bg-neutral-300',
+  critical: 'bg-red-500',
+  high:     'bg-orange-400',
+  medium:   'bg-amber-400',
+  low:      'bg-green-400',
 };
 
 const SEVERITY_HEX: Record<string, string> = {
-  critical: '#171717',
-  high:     '#525252',
-  medium:   '#a3a3a3',
-  low:      '#d4d4d4',
+  critical: '#ef4444',
+  high:     '#fb923c',
+  medium:   '#fbbf24',
+  low:      '#4ade80',
 };
 
 interface Props {

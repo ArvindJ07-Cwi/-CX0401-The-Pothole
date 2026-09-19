@@ -42,12 +42,12 @@ export default function JobsTable({ jobs }: Props) {
   }, [jobs, search, statusFilter]);
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 flex flex-col">
+    <div className="bg-white rounded-xl border border-neutral-200 flex flex-col">
       {/* ── Header + filters ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-b border-slate-100">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-b border-neutral-100">
         <div>
-          <h3 className="text-slate-800 font-semibold text-sm">Assigned Jobs</h3>
-          <p className="text-slate-400 text-xs mt-0.5">Manage your repair tasks</p>
+          <h3 className="text-neutral-800 font-semibold text-sm">Assigned Jobs</h3>
+          <p className="text-neutral-400 text-xs mt-0.5">Manage your repair tasks</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <input
@@ -55,12 +55,12 @@ export default function JobsTable({ jobs }: Props) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search ID, location…"
-            className="pl-3 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg w-48 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 placeholder-slate-400"
+            className="pl-3 pr-3 py-1.5 text-xs border border-neutral-200 rounded-lg w-48 focus:outline-none focus:ring-2 focus:ring-neutral-900 bg-neutral-50 placeholder-neutral-400"
           />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as ComplaintStatus | 'all')}
-            className="text-xs border border-slate-200 rounded-lg px-3 py-1.5 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700"
+            className="text-xs border border-neutral-200 rounded-lg px-3 py-1.5 bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-900 text-neutral-700"
           >
             {STATUS_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -73,37 +73,37 @@ export default function JobsTable({ jobs }: Props) {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-slate-100 bg-slate-50/60">
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-5 py-3">Ref No.</th>
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-4 py-3">Location</th>
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-4 py-3">Assigned Date</th>
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-4 py-3">Severity</th>
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-4 py-3">Status</th>
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-4 py-3">Action</th>
+            <tr className="border-b border-neutral-100 bg-neutral-50/60">
+              <th className="text-left text-xs font-semibold text-neutral-500 uppercase tracking-wide px-5 py-3">Ref No.</th>
+              <th className="text-left text-xs font-semibold text-neutral-500 uppercase tracking-wide px-4 py-3">Location</th>
+              <th className="text-left text-xs font-semibold text-neutral-500 uppercase tracking-wide px-4 py-3">Assigned Date</th>
+              <th className="text-left text-xs font-semibold text-neutral-500 uppercase tracking-wide px-4 py-3">Severity</th>
+              <th className="text-left text-xs font-semibold text-neutral-500 uppercase tracking-wide px-4 py-3">Status</th>
+              <th className="text-left text-xs font-semibold text-neutral-500 uppercase tracking-wide px-4 py-3">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-neutral-100">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center text-slate-400 text-xs py-10">
+                <td colSpan={6} className="text-center text-neutral-400 text-xs py-10">
                   No assigned jobs found.
                 </td>
               </tr>
             ) : (
               filtered.map((job) => (
-                <tr key={job.id} className="hover:bg-slate-50/70 transition-colors">
+                <tr key={job.id} className="hover:bg-neutral-50/70 transition-colors">
                   <td className="px-5 py-3 whitespace-nowrap">
-                    <span className="font-mono text-xs text-slate-700 font-medium">{job.referenceNo}</span>
+                    <span className="font-mono text-xs text-neutral-700 font-medium">{job.referenceNo}</span>
                   </td>
                   <td className="px-4 py-3 max-w-[200px]">
-                    <p className="text-slate-700 text-xs truncate" title={job.location.address}>
+                    <p className="text-neutral-700 text-xs truncate" title={job.location.address}>
                       {job.location.address}
                     </p>
                     {job.location.ward && (
-                      <p className="text-slate-400 text-[11px]">{job.location.ward}</p>
+                      <p className="text-neutral-400 text-[11px]">{job.location.ward}</p>
                     )}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-xs text-slate-500">
+                  <td className="px-4 py-3 whitespace-nowrap text-xs text-neutral-500">
                     {formatDate(job.updatedAt)}
                   </td>
                   <td className="px-4 py-3">
@@ -117,7 +117,7 @@ export default function JobsTable({ jobs }: Props) {
                       <button
                         type="button"
                         onClick={() => navigate(`/complaints/${job.id}`)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-medium transition-colors"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-neutral-100 hover:bg-neutral-200 text-neutral-600 text-[11px] font-medium transition-colors"
                       >
                         <Eye size={11} />
                         View
@@ -126,7 +126,7 @@ export default function JobsTable({ jobs }: Props) {
                         <button
                           type="button"
                           onClick={() => navigate(`/submit-repair/${job.id}`)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 text-[11px] font-medium transition-colors border border-blue-200"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-[11px] font-medium transition-colors border border-neutral-300"
                         >
                           <Upload size={11} />
                           Submit Evidence

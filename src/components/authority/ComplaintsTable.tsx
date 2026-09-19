@@ -62,12 +62,12 @@ export default function ComplaintsTable({ complaints }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 flex flex-col">
+    <div className="bg-white rounded-xl border border-neutral-200 flex flex-col">
       {/* ── Header + controls ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3 px-5 py-4 border-b border-slate-100">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 px-5 py-4 border-b border-neutral-100">
         <div className="flex-1">
-          <h3 className="text-slate-800 font-semibold text-sm">Complaints Register</h3>
-          <p className="text-slate-400 text-xs mt-0.5">
+          <h3 className="text-neutral-800 font-semibold text-sm">Complaints Register</h3>
+          <p className="text-neutral-400 text-xs mt-0.5">
             {/* MOCK DATA — replace with API */}
             Showing {filtered.length} of {complaints.length} records
           </p>
@@ -80,7 +80,7 @@ export default function ComplaintsTable({ complaints }: Props) {
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
               placeholder="Search ID, location…"
-              className="pl-3 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg w-48 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 placeholder-slate-400"
+              className="pl-3 pr-3 py-1.5 text-xs border border-neutral-200 rounded-lg w-48 focus:outline-none focus:ring-2 focus:ring-neutral-900 bg-neutral-50 placeholder-neutral-400"
               aria-label="Search complaints"
             />
           </div>
@@ -88,7 +88,7 @@ export default function ComplaintsTable({ complaints }: Props) {
           <select
             value={statusFilter}
             onChange={(e) => handleStatus(e.target.value as ComplaintStatus | 'all')}
-            className="text-xs border border-slate-200 rounded-lg px-3 py-1.5 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700"
+            className="text-xs border border-neutral-200 rounded-lg px-3 py-1.5 bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-900 text-neutral-700"
             aria-label="Filter by status"
           >
             {STATUS_OPTIONS.map((opt) => (
@@ -102,46 +102,46 @@ export default function ComplaintsTable({ complaints }: Props) {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-slate-100 bg-slate-50/60">
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-5 py-3 whitespace-nowrap">Ref No.</th>
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-4 py-3">Location</th>
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-4 py-3 whitespace-nowrap">Reported</th>
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-4 py-3">Severity</th>
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-4 py-3">Contractor</th>
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-4 py-3">Status</th>
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wide px-4 py-3">Actions</th>
+            <tr className="border-b border-neutral-100 bg-neutral-50/60">
+              <th className="text-left text-xs font-semibold text-neutral-500 uppercase tracking-wide px-5 py-3 whitespace-nowrap">Ref No.</th>
+              <th className="text-left text-xs font-semibold text-neutral-500 uppercase tracking-wide px-4 py-3">Location</th>
+              <th className="text-left text-xs font-semibold text-neutral-500 uppercase tracking-wide px-4 py-3 whitespace-nowrap">Reported</th>
+              <th className="text-left text-xs font-semibold text-neutral-500 uppercase tracking-wide px-4 py-3">Severity</th>
+              <th className="text-left text-xs font-semibold text-neutral-500 uppercase tracking-wide px-4 py-3">Contractor</th>
+              <th className="text-left text-xs font-semibold text-neutral-500 uppercase tracking-wide px-4 py-3">Status</th>
+              <th className="text-left text-xs font-semibold text-neutral-500 uppercase tracking-wide px-4 py-3">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-neutral-100">
             {pageItems.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center text-slate-400 text-xs py-10">
+                <td colSpan={7} className="text-center text-neutral-400 text-xs py-10">
                   No complaints match your filters.
                 </td>
               </tr>
             ) : (
               pageItems.map((c) => (
-                <tr key={c.id} className="hover:bg-slate-50/70 transition-colors">
+                <tr key={c.id} className="hover:bg-neutral-50/70 transition-colors">
                   {/* Ref No */}
                   <td className="px-5 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
                       {c.status === 'flagged' && (
                         <AlertTriangle size={12} className="text-red-500 shrink-0" aria-label="Flagged" />
                       )}
-                      <span className="font-mono text-xs text-slate-700 font-medium">{c.referenceNo}</span>
+                      <span className="font-mono text-xs text-neutral-700 font-medium">{c.referenceNo}</span>
                     </div>
                   </td>
                   {/* Location */}
                   <td className="px-4 py-3 max-w-[200px]">
-                    <p className="text-slate-700 text-xs truncate" title={c.location.address}>
+                    <p className="text-neutral-700 text-xs truncate" title={c.location.address}>
                       {c.location.address}
                     </p>
                     {c.location.ward && (
-                      <p className="text-slate-400 text-[11px]">{c.location.ward}</p>
+                      <p className="text-neutral-400 text-[11px]">{c.location.ward}</p>
                     )}
                   </td>
                   {/* Date */}
-                  <td className="px-4 py-3 whitespace-nowrap text-xs text-slate-500">
+                  <td className="px-4 py-3 whitespace-nowrap text-xs text-neutral-500">
                     {formatDate(c.reportedAt)}
                   </td>
                   {/* Severity */}
@@ -149,9 +149,9 @@ export default function ComplaintsTable({ complaints }: Props) {
                     <SeverityBadge severity={c.severity} />
                   </td>
                   {/* Contractor */}
-                  <td className="px-4 py-3 text-xs text-slate-600">
+                  <td className="px-4 py-3 text-xs text-neutral-600">
                     {c.contractorName ?? (
-                      <span className="text-slate-300 italic">Unassigned</span>
+                      <span className="text-neutral-300 italic">Unassigned</span>
                     )}
                   </td>
                   {/* Status */}
@@ -164,7 +164,7 @@ export default function ComplaintsTable({ complaints }: Props) {
                       <button
                         type="button"
                         onClick={() => navigate(`/complaints/${c.id}`)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-medium transition-colors"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-neutral-100 hover:bg-neutral-200 text-neutral-600 text-[11px] font-medium transition-colors"
                         aria-label={`View complaint ${c.referenceNo}`}
                       >
                         <Eye size={11} />
@@ -174,7 +174,7 @@ export default function ComplaintsTable({ complaints }: Props) {
                         <button
                           type="button"
                           onClick={() => navigate(`/complaints/${c.id}`)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 text-[11px] font-medium transition-colors border border-blue-200"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-[11px] font-medium transition-colors border border-neutral-300"
                           aria-label={`Assign contractor for ${c.referenceNo}`}
                         >
                           <UserCheck size={11} />
@@ -192,8 +192,8 @@ export default function ComplaintsTable({ complaints }: Props) {
 
       {/* ── Pagination ── */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100">
-          <p className="text-xs text-slate-400">
+        <div className="flex items-center justify-between px-5 py-3 border-t border-neutral-100">
+          <p className="text-xs text-neutral-400">
             Page {safePage} of {totalPages}
           </p>
           <div className="flex gap-1.5">
@@ -201,7 +201,7 @@ export default function ComplaintsTable({ complaints }: Props) {
               type="button"
               disabled={safePage <= 1}
               onClick={() => setPage(safePage - 1)}
-              className="px-3 py-1 text-xs rounded-md border border-slate-200 text-slate-600 disabled:opacity-40 hover:bg-slate-50 transition-colors"
+              className="px-3 py-1 text-xs rounded-md border border-neutral-200 text-neutral-600 disabled:opacity-40 hover:bg-neutral-50 transition-colors"
             >
               Prev
             </button>
@@ -209,7 +209,7 @@ export default function ComplaintsTable({ complaints }: Props) {
               type="button"
               disabled={safePage >= totalPages}
               onClick={() => setPage(safePage + 1)}
-              className="px-3 py-1 text-xs rounded-md border border-slate-200 text-slate-600 disabled:opacity-40 hover:bg-slate-50 transition-colors"
+              className="px-3 py-1 text-xs rounded-md border border-neutral-200 text-neutral-600 disabled:opacity-40 hover:bg-neutral-50 transition-colors"
             >
               Next
             </button>

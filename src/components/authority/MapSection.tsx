@@ -17,7 +17,7 @@ const SEVERITY_COLOR: Record<string, string> = {
 
 const SEVERITY_HEX: Record<string, string> = {
   critical: '#ef4444',
-  high:     '#fb923c',
+  high:      '#fb923c',
   medium:   '#fbbf24',
   low:      '#4ade80',
 };
@@ -79,19 +79,19 @@ export default function MapSection({ complaints }: Props) {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden flex flex-col">
+    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden flex flex-col">
       {/* ── Header + Filters ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-3 border-b border-neutral-100">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-3 border-b border-slate-100">
         <div>
-          <h3 className="text-neutral-800 font-semibold text-sm">Interactive Map</h3>
-          <p className="text-neutral-400 text-xs mt-0.5">Showing {mapData.length} pothole{mapData.length !== 1 ? 's' : ''}</p>
+          <h3 className="text-slate-800 font-semibold text-sm">Interactive Map</h3>
+          <p className="text-slate-400 text-xs mt-0.5">Showing {mapData.length} pothole{mapData.length !== 1 ? 's' : ''}</p>
         </div>
 
         <div className="flex items-center gap-2">
           <select
             value={severityFilter}
             onChange={(e) => setSeverityFilter(e.target.value as any)}
-            className="text-xs border border-neutral-200 rounded-lg px-2.5 py-1.5 bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-900 text-neutral-700"
+            className="text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700"
           >
             <option value="all">All Severities</option>
             <option value="critical">Critical</option>
@@ -102,7 +102,7 @@ export default function MapSection({ complaints }: Props) {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="text-xs border border-neutral-200 rounded-lg px-2.5 py-1.5 bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-900 text-neutral-700"
+            className="text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700"
           >
             <option value="all">All Statuses</option>
             <option value="pending">Pending</option>
@@ -116,18 +116,18 @@ export default function MapSection({ complaints }: Props) {
       </div>
 
       {/* ── Legend ── */}
-      <div className="flex items-center gap-4 px-5 py-2.5 bg-neutral-50/50 border-b border-neutral-100 overflow-x-auto">
-        <span className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wide">Legend:</span>
+      <div className="flex items-center gap-4 px-5 py-2.5 bg-slate-50/50 border-b border-slate-100 overflow-x-auto">
+        <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Legend:</span>
         {(Object.entries(counts) as [string, number][]).map(([key, val]) => (
           <div key={key} className="flex items-center gap-1.5">
             <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${SEVERITY_COLOR[key]}`} />
-            <span className="text-[11px] text-neutral-600 capitalize whitespace-nowrap">{key} ({val})</span>
+            <span className="text-[11px] text-slate-600 capitalize whitespace-nowrap">{key} ({val})</span>
           </div>
         ))}
       </div>
 
       {/* ── Map Container ── */}
-      <div className="relative h-[400px] bg-neutral-100 w-full z-0">
+      <div className="relative h-[400px] bg-slate-100 w-full z-0">
         {validCoords.length > 0 ? (
           <MapContainer
             center={validCoords[0]}
@@ -147,20 +147,20 @@ export default function MapSection({ complaints }: Props) {
               >
                 <Popup className="custom-popup">
                   <div className="min-w-[180px]">
-                    <div className="flex items-center justify-between mb-2 pb-2 border-b border-neutral-100">
-                      <span className="font-mono text-xs font-semibold text-neutral-700">{c.referenceNo}</span>
+                    <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100">
+                      <span className="font-mono text-xs font-semibold text-slate-700">{c.referenceNo}</span>
                       <StatusBadge status={c.status} />
                     </div>
-                    <h4 className="text-sm font-semibold text-neutral-800 mb-1">{c.title}</h4>
-                    <p className="text-xs text-neutral-600 flex items-start gap-1 mb-2">
-                      <MapPin size={12} className="shrink-0 mt-0.5 text-neutral-400" />
+                    <h4 className="text-sm font-semibold text-slate-800 mb-1">{c.title}</h4>
+                    <p className="text-xs text-slate-600 flex items-start gap-1 mb-2">
+                      <MapPin size={12} className="shrink-0 mt-0.5 text-slate-400" />
                       {c.location.address}
                     </p>
                     <div className="flex items-center justify-between mt-3">
                       <SeverityBadge severity={c.severity} />
                       <button
                         onClick={() => navigate(`/complaints/${c.id}`)}
-                        className="inline-flex items-center gap-1 px-2 py-1 bg-neutral-100 text-neutral-900 hover:bg-neutral-200 rounded text-[11px] font-medium transition-colors"
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-[11px] font-medium transition-colors"
                       >
                         <Eye size={12} />
                         View
@@ -173,8 +173,8 @@ export default function MapSection({ complaints }: Props) {
             <FitBounds coords={validCoords} />
           </MapContainer>
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-neutral-400 bg-neutral-50">
-            <MapPin size={32} className="mb-2 text-neutral-300" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-50">
+            <MapPin size={32} className="mb-2 text-slate-300" />
             <p className="text-sm font-medium">No potholes found</p>
             <p className="text-xs">Adjust your filters to see more results</p>
           </div>

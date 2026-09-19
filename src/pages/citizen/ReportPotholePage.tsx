@@ -26,10 +26,10 @@ interface FormValues {
 }
 
 const SEVERITY_OPTIONS: { value: Severity; label: string; color: string }[] = [
-  { value: 'low',      label: 'Low — Minor surface damage',          color: 'text-neutral-600' },
-  { value: 'medium',   label: 'Medium — Moderate depth, avoidable',  color: 'text-neutral-500' },
-  { value: 'high',     label: 'High — Deep / hard to avoid',         color: 'text-neutral-600' },
-  { value: 'critical', label: 'Critical — Immediate safety hazard',  color: 'text-neutral-800' },
+  { value: 'low',      label: 'Low — Minor surface damage',          color: 'text-slate-600' },
+  { value: 'medium',   label: 'Medium — Moderate depth, avoidable',  color: 'text-amber-600' },
+  { value: 'high',     label: 'High — Deep / hard to avoid',         color: 'text-orange-600' },
+  { value: 'critical', label: 'Critical — Immediate safety hazard',  color: 'text-red-600' },
 ];
 
 const INITIAL: FormValues = {
@@ -48,9 +48,9 @@ function FieldLabel({ htmlFor, children, required }: {
   required?: boolean;
 }) {
   return (
-    <label htmlFor={htmlFor} className="block text-xs font-semibold text-neutral-600 mb-1.5">
+    <label htmlFor={htmlFor} className="block text-xs font-semibold text-slate-600 mb-1.5">
       {children}
-      {required && <span className="text-neutral-500 ml-0.5">*</span>}
+      {required && <span className="text-red-500 ml-0.5">*</span>}
     </label>
   );
 }
@@ -58,7 +58,7 @@ function FieldLabel({ htmlFor, children, required }: {
 function FieldError({ msg }: { msg?: string }) {
   if (!msg) return null;
   return (
-    <p className="flex items-center gap-1 text-neutral-500 text-[11px] mt-1">
+    <p className="flex items-center gap-1 text-red-500 text-[11px] mt-1">
       <AlertCircle size={10} />
       {msg}
     </p>
@@ -197,36 +197,36 @@ export default function ReportPotholePage() {
   if (submitState === 'success') {
     return (
       <div className="max-w-lg mx-auto mt-10">
-        <div className="bg-white rounded-xl border border-neutral-200 p-8 text-center space-y-4">
-          <div className="w-14 h-14 rounded-full bg-neutral-100 flex items-center justify-center mx-auto">
-            <CheckCircle2 size={28} className="text-neutral-600" />
+        <div className="bg-white rounded-xl border border-slate-200 p-8 text-center space-y-4">
+          <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto">
+            <CheckCircle2 size={28} className="text-green-600" />
           </div>
           <div>
-            <h2 className="text-neutral-800 font-semibold text-lg">Report Submitted!</h2>
-            <p className="text-neutral-500 text-sm mt-1">
+            <h2 className="text-slate-800 font-semibold text-lg">Report Submitted!</h2>
+            <p className="text-slate-500 text-sm mt-1">
               Your complaint has been received. A municipal officer will review and assign a contractor.
             </p>
           </div>
-          <div className="bg-neutral-50 border border-neutral-200 rounded-lg px-4 py-3 inline-block">
-            <p className="text-xs text-neutral-500 uppercase tracking-wide">Reference Number</p>
-            <p className="font-mono text-lg font-bold text-neutral-800 mt-0.5">{generatedRef}</p>
-            <p className="text-[11px] text-neutral-400 mt-1">[DEMO — generated client-side]</p>
+          <div className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 inline-block">
+            <p className="text-xs text-slate-500 uppercase tracking-wide">Reference Number</p>
+            <p className="font-mono text-lg font-bold text-slate-800 mt-0.5">{generatedRef}</p>
+            <p className="text-[11px] text-slate-400 mt-1">[DEMO — generated client-side]</p>
           </div>
-          <p className="text-xs text-neutral-400">
+          <p className="text-xs text-slate-400">
             Submitted: {new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
           </p>
           <div className="flex gap-3 justify-center pt-2">
             <button
               type="button"
               onClick={() => navigate('/')}
-              className="px-4 py-2 text-sm rounded-lg border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition-colors"
+              className="px-4 py-2 text-sm rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
             >
               Back to Dashboard
             </button>
             <button
               type="button"
               onClick={() => { setValues(INITIAL); setPhotoFile(null); setPhotoPreview(null); setSubmitState('idle'); }}
-              className="px-4 py-2 text-sm rounded-lg bg-neutral-900 text-white hover:bg-neutral-800 transition-colors"
+              className="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
             >
               Report Another
             </button>
@@ -241,16 +241,16 @@ export default function ReportPotholePage() {
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Page header */}
       <div>
-        <h2 className="text-neutral-800 text-xl font-semibold">Report a Pothole</h2>
-        <p className="text-neutral-500 text-sm mt-1">
-          Fill in the details below. Fields marked <span className="text-neutral-500">*</span> are required.
+        <h2 className="text-slate-800 text-xl font-semibold">Report a Pothole</h2>
+        <p className="text-slate-500 text-sm mt-1">
+          Fill in the details below. Fields marked <span className="text-red-500">*</span> are required.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} noValidate className="space-y-5">
         {/* ── Card 1: Complaint Details ── */}
-        <div className="bg-white rounded-xl border border-neutral-200 p-5 space-y-4">
-          <h3 className="text-neutral-700 font-semibold text-sm border-b border-neutral-100 pb-3">
+        <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+          <h3 className="text-slate-700 font-semibold text-sm border-b border-slate-100 pb-3">
             Complaint Details
           </h3>
 
@@ -265,8 +265,8 @@ export default function ReportPotholePage() {
               onChange={handleChange}
               placeholder="e.g. Deep pothole near school entrance"
               maxLength={120}
-              className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 placeholder-neutral-300 ${
-                errors.title ? 'border-neutral-400 bg-neutral-100' : 'border-neutral-200 bg-white'
+              className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-300 ${
+                errors.title ? 'border-red-400 bg-red-50' : 'border-slate-200 bg-white'
               }`}
             />
             <FieldError msg={errors.title} />
@@ -283,13 +283,13 @@ export default function ReportPotholePage() {
               rows={4}
               placeholder="Describe the pothole — size, depth, how long it has been there, and any safety concerns."
               maxLength={1000}
-              className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 resize-none placeholder-neutral-300 ${
-                errors.description ? 'border-neutral-400 bg-neutral-100' : 'border-neutral-200 bg-white'
+              className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none placeholder-slate-300 ${
+                errors.description ? 'border-red-400 bg-red-50' : 'border-slate-200 bg-white'
               }`}
             />
             <div className="flex justify-between mt-0.5">
               <FieldError msg={errors.description} />
-              <span className="text-[10px] text-neutral-400 ml-auto">
+              <span className="text-[10px] text-slate-400 ml-auto">
                 {values.description.length}/1000
               </span>
             </div>
@@ -303,7 +303,7 @@ export default function ReportPotholePage() {
               name="severity"
               value={values.severity}
               onChange={handleChange}
-              className="w-full px-3 py-2 text-sm border border-neutral-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-neutral-900 text-neutral-700"
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700"
             >
               {SEVERITY_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -315,9 +315,9 @@ export default function ReportPotholePage() {
         </div>
 
         {/* ── Card 2: Before Photo ── */}
-        <div className="bg-white rounded-xl border border-neutral-200 p-5 space-y-3">
-          <h3 className="text-neutral-700 font-semibold text-sm border-b border-neutral-100 pb-3">
-            Before Photo <span className="text-neutral-500">*</span>
+        <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
+          <h3 className="text-slate-700 font-semibold text-sm border-b border-slate-100 pb-3">
+            Before Photo <span className="text-red-500">*</span>
           </h3>
 
           {photoPreview ? (
@@ -326,17 +326,17 @@ export default function ReportPotholePage() {
               <img
                 src={photoPreview}
                 alt="Before photo preview"
-                className="w-full h-52 object-cover rounded-lg border border-neutral-200"
+                className="w-full h-52 object-cover rounded-lg border border-slate-200"
               />
               <button
                 type="button"
                 onClick={clearPhoto}
-                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-neutral-800/70 hover:bg-neutral-800 text-white flex items-center justify-center transition-colors"
+                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-slate-800/70 hover:bg-slate-800 text-white flex items-center justify-center transition-colors"
                 aria-label="Remove photo"
               >
                 <X size={14} />
               </button>
-              <p className="text-[11px] text-neutral-400 mt-1.5">
+              <p className="text-[11px] text-slate-400 mt-1.5">
                 {photoFile?.name} ({(photoFile!.size / 1024).toFixed(0)} KB)
               </p>
             </div>
@@ -347,14 +347,14 @@ export default function ReportPotholePage() {
               onClick={() => fileInputRef.current?.click()}
               className={`w-full border-2 border-dashed rounded-lg p-8 flex flex-col items-center gap-2 transition-colors cursor-pointer ${
                 photoError
-                  ? 'border-neutral-300 bg-neutral-100 hover:bg-neutral-100'
-                  : 'border-neutral-200 bg-neutral-50 hover:bg-neutral-100 hover:border-neutral-300'
+                  ? 'border-red-300 bg-red-50 hover:bg-red-50'
+                  : 'border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300'
               }`}
               aria-label="Upload before photo"
             >
-              <ImageIcon size={28} className={photoError ? 'text-neutral-400' : 'text-neutral-400'} />
-              <span className="text-sm font-medium text-neutral-600">Click to upload a photo</span>
-              <span className="text-[11px] text-neutral-400">JPEG, PNG, WebP or HEIC · Max 10 MB</span>
+              <ImageIcon size={28} className={photoError ? 'text-red-400' : 'text-slate-400'} />
+              <span className="text-sm font-medium text-slate-600">Click to upload a photo</span>
+              <span className="text-[11px] text-slate-400">JPEG, PNG, WebP or HEIC · Max 10 MB</span>
             </button>
           )}
 
@@ -370,8 +370,8 @@ export default function ReportPotholePage() {
         </div>
 
         {/* ── Card 3: Location ── */}
-        <div className="bg-white rounded-xl border border-neutral-200 p-5 space-y-4">
-          <h3 className="text-neutral-700 font-semibold text-sm border-b border-neutral-100 pb-3">
+        <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+          <h3 className="text-slate-700 font-semibold text-sm border-b border-slate-100 pb-3">
             Location
           </h3>
 
@@ -385,8 +385,8 @@ export default function ReportPotholePage() {
               value={values.address}
               onChange={handleChange}
               placeholder="e.g. MG Road, Near Signal No. 4, Pune"
-              className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 placeholder-neutral-300 ${
-                errors.address ? 'border-neutral-400 bg-neutral-100' : 'border-neutral-200 bg-white'
+              className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-300 ${
+                errors.address ? 'border-red-400 bg-red-50' : 'border-slate-200 bg-white'
               }`}
             />
             <FieldError msg={errors.address} />
@@ -400,7 +400,7 @@ export default function ReportPotholePage() {
                 type="button"
                 onClick={handleGeolocate}
                 disabled={locating}
-                className="inline-flex items-center gap-1.5 text-[11px] text-neutral-900 hover:text-neutral-800 font-medium disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 text-[11px] text-blue-600 hover:text-blue-700 font-medium disabled:opacity-60"
               >
                 {locating ? (
                   <Loader2 size={11} className="animate-spin" />
@@ -420,7 +420,7 @@ export default function ReportPotholePage() {
                   value={values.lat}
                   onChange={handleChange}
                   placeholder="Latitude"
-                  className="w-full px-3 py-2 text-sm border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 placeholder-neutral-300"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-300"
                 />
               </div>
               <div>
@@ -431,13 +431,13 @@ export default function ReportPotholePage() {
                   value={values.lng}
                   onChange={handleChange}
                   placeholder="Longitude"
-                  className="w-full px-3 py-2 text-sm border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 placeholder-neutral-300"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-300"
                 />
               </div>
             </div>
             {locError && <FieldError msg={locError} />}
             {values.lat && values.lng && !locError && (
-              <p className="flex items-center gap-1 text-[11px] text-neutral-600 mt-1">
+              <p className="flex items-center gap-1 text-[11px] text-green-600 mt-1">
                 <MapPin size={10} />
                 Location captured: {values.lat}, {values.lng}
               </p>
@@ -445,21 +445,21 @@ export default function ReportPotholePage() {
           </div>
 
           {/* Timestamp note */}
-          <p className="text-[11px] text-neutral-400 flex items-center gap-1">
-            <CheckCircle2 size={10} className="text-neutral-500" />
+          <p className="text-[11px] text-slate-400 flex items-center gap-1">
+            <CheckCircle2 size={10} className="text-green-500" />
             Submission timestamp will be recorded automatically on submit.
           </p>
         </div>
 
         {/* ── Error banner ── */}
         {submitState === 'error' && (
-          <div className="flex items-start gap-3 bg-neutral-100 border border-neutral-200 rounded-xl px-4 py-3">
-            <AlertCircle size={16} className="text-neutral-500 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+            <AlertCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
             <div>
-              <p className="text-neutral-700 text-sm font-medium">Submission failed</p>
-              <p className="text-neutral-500 text-xs mt-0.5">
+              <p className="text-red-700 text-sm font-medium">Submission failed</p>
+              <p className="text-red-500 text-xs mt-0.5">
                 Could not reach the server. Please try again.{' '}
-                <span className="text-neutral-400">[MOCK: simulated network error]</span>
+                <span className="text-slate-400">[MOCK: simulated network error]</span>
               </p>
             </div>
           </div>
@@ -470,7 +470,7 @@ export default function ReportPotholePage() {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="px-4 py-2 text-sm rounded-lg border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition-colors"
+            className="px-4 py-2 text-sm rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
           >
             Cancel
           </button>
@@ -478,7 +478,7 @@ export default function ReportPotholePage() {
           <button
             type="submit"
             disabled={submitState === 'loading'}
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-neutral-900 hover:bg-neutral-800 disabled:bg-neutral-400 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
           >
             {submitState === 'loading' ? (
               <>

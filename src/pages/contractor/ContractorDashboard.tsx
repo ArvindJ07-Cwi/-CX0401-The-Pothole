@@ -12,12 +12,12 @@ export default function ContractorDashboard() {
     <div className="space-y-6">
       {/* ── Greeting ── */}
       <div>
-        <h2 className="text-neutral-800 text-xl font-semibold">
+        <h2 className="text-slate-800 text-xl font-semibold">
           Contractor Dashboard: {CONTRACTOR_NAME}
         </h2>
-        <p className="text-neutral-500 text-sm mt-1">
+        <p className="text-slate-500 text-sm mt-1">
           Manage your assigned road repair jobs and submit completion evidence.{' '}
-          <span className="text-xs text-neutral-400">[MOCK DATA]</span>
+          <span className="text-xs text-slate-400">[MOCK DATA]</span>
         </p>
       </div>
 
@@ -26,31 +26,31 @@ export default function ContractorDashboard() {
         <KpiCard
           label="Assigned"
           value={stats.assigned}
-          icon={<Clock size={18} className="text-neutral-900" />}
-          iconBg="bg-neutral-100"
+          icon={<Clock size={18} className="text-blue-600" />}
+          iconBg="bg-blue-50"
           sub="Awaiting action"
         />
         <KpiCard
           label="In Progress"
           value={stats.inProgress}
-          icon={<Wrench size={18} className="text-neutral-600" />}
-          iconBg="bg-neutral-100"
+          icon={<Wrench size={18} className="text-amber-600" />}
+          iconBg="bg-amber-50"
           sub="Work started"
         />
         <KpiCard
           label="Submitted"
           value={stats.submitted}
-          icon={<FileCheck2 size={18} className="text-neutral-700" />}
-          iconBg="bg-neutral-100"
+          icon={<FileCheck2 size={18} className="text-violet-600" />}
+          iconBg="bg-violet-50"
           sub="Pending verification"
         />
         <KpiCard
           label="Completed"
           value={stats.completed}
-          icon={<CheckCircle2 size={18} className="text-neutral-600" />}
-          iconBg="bg-neutral-100"
+          icon={<CheckCircle2 size={18} className="text-green-600" />}
+          iconBg="bg-green-50"
           sub="Repairs verified"
-          subColor="text-neutral-500"
+          subColor="text-green-500"
         />
       </div>
 

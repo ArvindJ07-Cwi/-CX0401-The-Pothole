@@ -1,10 +1,10 @@
 import type { Severity } from '../../types';
 
 const CONFIG: Record<Severity, { label: string; className: string }> = {
-  low:      { label: 'Low',      className: 'bg-white text-neutral-500 border-neutral-200' },
-  medium:   { label: 'Medium',   className: 'bg-neutral-50 text-neutral-600 border-neutral-200' },
-  high:     { label: 'High',     className: 'bg-neutral-100 text-neutral-700 border-neutral-300' },
-  critical: { label: 'Critical', className: 'bg-neutral-800 text-neutral-100 border-neutral-900' },
+  low:      { label: 'Low',      className: 'bg-slate-100 text-slate-600 border-slate-200' },
+  medium:   { label: 'Medium',   className: 'bg-amber-50  text-amber-700  border-amber-200' },
+  high:     { label: 'High',     className: 'bg-orange-50 text-orange-700 border-orange-200' },
+  critical: { label: 'Critical', className: 'bg-red-50    text-red-700    border-red-200' },
 };
 
 interface Props {

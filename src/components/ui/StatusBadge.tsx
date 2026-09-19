@@ -4,13 +4,13 @@ const CONFIG: Record<
   ComplaintStatus,
   { label: string; className: string }
 > = {
-  pending:     { label: 'Pending',     className: 'bg-amber-50/50 text-amber-700 border-amber-200/50' },
-  assigned:    { label: 'Assigned',    className: 'bg-neutral-50 text-neutral-600 border-neutral-200' },
-  in_progress: { label: 'In Progress', className: 'bg-neutral-100 text-neutral-700 border-neutral-200' },
-  submitted:   { label: 'Submitted',   className: 'bg-neutral-100 text-neutral-800 border-neutral-300' },
-  verified:    { label: 'Verified',    className: 'bg-green-50/50 text-green-700 border-green-200/50' },
-  flagged:     { label: 'Flagged',     className: 'bg-red-50/50 text-red-700 border-red-200/50' },
-  rejected:    { label: 'Rejected',    className: 'bg-neutral-50 text-neutral-400 border-neutral-200' },
+  pending:     { label: 'Pending',     className: 'bg-amber-50  text-amber-700  border-amber-200'  },
+  assigned:    { label: 'Assigned',    className: 'bg-blue-50   text-blue-700   border-blue-200'   },
+  in_progress: { label: 'In Progress', className: 'bg-violet-50 text-violet-700 border-violet-200' },
+  submitted:   { label: 'Submitted',   className: 'bg-sky-50    text-sky-700    border-sky-200'    },
+  verified:    { label: 'Verified',    className: 'bg-green-50  text-green-700  border-green-200'  },
+  flagged:     { label: 'Flagged',     className: 'bg-red-50    text-red-700    border-red-200'    },
+  rejected:    { label: 'Rejected',    className: 'bg-slate-100 text-slate-500  border-slate-200'  },
 };
 
 interface Props {

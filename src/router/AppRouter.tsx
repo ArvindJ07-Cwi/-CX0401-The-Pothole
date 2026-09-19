@@ -4,6 +4,8 @@ import DashboardPage from '../pages/DashboardPage';
 import PlaceholderPage from '../pages/PlaceholderPage';
 import CitizenDashboard from '../pages/citizen/CitizenDashboard';
 import ReportPotholePage from '../pages/citizen/ReportPotholePage';
+import ContractorDashboard from '../pages/contractor/ContractorDashboard';
+import SubmitRepairPage from '../pages/contractor/SubmitRepairPage';
 
 export default function AppRouter() {
   return (
@@ -22,8 +24,9 @@ export default function AppRouter() {
           <Route path="/flagged"        element={<PlaceholderPage name="Flagged Cases" />} />
 
           {/* Contractor */}
-          <Route path="/jobs"          element={<PlaceholderPage name="My Jobs" />} />
-          <Route path="/submit-repair" element={<PlaceholderPage name="Submit Repair" />} />
+          <Route path="/jobs"              element={<ContractorDashboard />} />
+          <Route path="/submit-repair"     element={<ContractorDashboard />} />
+          <Route path="/submit-repair/:id" element={<SubmitRepairPage />} />
 
           {/* Common */}
           <Route path="/settings" element={<PlaceholderPage name="Settings" />} />

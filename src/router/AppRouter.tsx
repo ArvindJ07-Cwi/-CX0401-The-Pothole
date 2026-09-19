@@ -7,11 +7,15 @@ import ReportPotholePage from '../pages/citizen/ReportPotholePage';
 import ContractorDashboard from '../pages/contractor/ContractorDashboard';
 import SubmitRepairPage from '../pages/contractor/SubmitRepairPage';
 import ComplaintDetailPage from '../pages/authority/ComplaintDetailPage';
+import LoginPage from '../pages/auth/LoginPage';
+import SignupPage from '../pages/auth/SignupPage';
 
 export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
         <Route element={<AppShell />}>
           <Route index element={<DashboardPage />} />
 

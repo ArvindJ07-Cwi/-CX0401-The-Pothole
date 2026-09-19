@@ -1,4 +1,5 @@
-import { Bell, ChevronDown } from 'lucide-react';
+import { Bell, ChevronDown, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useRole } from '../../context/RoleContext';
 import type { UserRole } from '../../types';
 
@@ -20,6 +21,7 @@ interface TopBarProps {
 
 export default function TopBar({ title }: TopBarProps) {
   const { role, setRole } = useRole();
+  const navigate = useNavigate();
 
   return (
     <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0">
@@ -61,8 +63,19 @@ export default function TopBar({ title }: TopBarProps) {
           </div>
 
           {/* Avatar */}
-          <div className="w-7 h-7 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center">
+          <div className="w-7 h-7 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center mr-2">
             {ROLE_AVATAR[role]}
+          </div>
+
+          {/* Logout */}
+          <div className="pl-3 border-l border-slate-200">
+            <button
+              onClick={() => navigate('/login')}
+              className="flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors"
+            >
+              <LogOut size={16} />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
           </div>
         </div>
       </div>

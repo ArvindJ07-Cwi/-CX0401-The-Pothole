@@ -44,8 +44,7 @@ export default function MyReportsList({ complaints }: Props) {
         <div>
           <h3 className="text-slate-800 font-semibold text-sm">My Reports</h3>
           <p className="text-slate-400 text-xs mt-0.5">
-            {complaints.length} complaint{complaints.length !== 1 ? 's' : ''} submitted{' '}
-            <span className="text-slate-300">[MOCK DATA]</span>
+            {complaints.length} complaint{complaints.length !== 1 ? 's' : ''} submitted
           </p>
         </div>
       </div>

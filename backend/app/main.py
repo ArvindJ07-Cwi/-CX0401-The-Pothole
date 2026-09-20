@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import FRONTEND_URL
 from app.database import engine, Base
-from app.routes import health, auth
+from app.routes import health, auth, complaints
 
 # Import models so Base.metadata knows about all tables
 import app.models  # noqa: F401
@@ -35,6 +35,12 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    # ── Static Files ─────────────────────────────────────────────────────────
+    from fastapi.staticfiles import StaticFiles
+    import os
+    os.makedirs("uploads", exist_ok=True)
+    application.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
     # ── Database init ────────────────────────────────────────────────────────
     @application.on_event("startup")
     def on_startup() -> None:
@@ -43,6 +49,7 @@ def create_app() -> FastAPI:
     # ── Routers ──────────────────────────────────────────────────────────────
     application.include_router(health.router)
     application.include_router(auth.router)
+    application.include_router(complaints.router)
 
     return application
 

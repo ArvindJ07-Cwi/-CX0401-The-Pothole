@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { generateDemoRefNo } from '../../data/mockCitizenComplaints';
+import axios from 'axios';
 import type { Severity } from '../../types';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -168,27 +168,30 @@ export default function ReportPotholePage() {
 
     setSubmitState('loading');
 
-    /**
-     * MOCK SUBMISSION — replace the setTimeout with an axios.post() call
-     * when the backend is ready. The FormData shape to use:
-     *
-     * const formData = new FormData();
-     * formData.append('title', values.title);
-     * formData.append('description', values.description);
-     * formData.append('severity', values.severity);
-     * formData.append('address', values.address);
-     * formData.append('lat', values.lat);
-     * formData.append('lng', values.lng);
-     * if (photoFile) formData.append('beforePhoto', photoFile);
-     * await axios.post('/api/complaints', formData);
-     */
-    await new Promise((res) => setTimeout(res, 1800));
+    try {
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      formData.append('title', values.title);
+      formData.append('description', values.description);
+      formData.append('severity', values.severity);
+      formData.append('address', values.address);
+      if (values.lat) formData.append('lat', values.lat);
+      if (values.lng) formData.append('lng', values.lng);
+      if (photoFile) formData.append('beforePhoto', photoFile);
 
-    // Simulate random success (90%) vs network error (10%) for demo
-    if (Math.random() > 0.1) {
-      setGeneratedRef(generateDemoRefNo());
+      // Using axios as requested
+      const res = await axios.post('http://localhost:8000/api/complaints', formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      const data = res.data;
+      setGeneratedRef(`COMP-${String(data.id).padStart(4, '0')}`);
       setSubmitState('success');
-    } else {
+    } catch (err) {
+      console.error(err);
       setSubmitState('error');
     }
   }
@@ -210,7 +213,6 @@ export default function ReportPotholePage() {
           <div className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 inline-block">
             <p className="text-xs text-slate-500 uppercase tracking-wide">Reference Number</p>
             <p className="font-mono text-lg font-bold text-slate-800 mt-0.5">{generatedRef}</p>
-            <p className="text-[11px] text-slate-400 mt-1">[DEMO — generated client-side]</p>
           </div>
           <p className="text-xs text-slate-400">
             Submitted: {new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
@@ -458,8 +460,7 @@ export default function ReportPotholePage() {
             <div>
               <p className="text-red-700 text-sm font-medium">Submission failed</p>
               <p className="text-red-500 text-xs mt-0.5">
-                Could not reach the server. Please try again.{' '}
-                <span className="text-slate-400">[MOCK: simulated network error]</span>
+                Could not reach the server. Please try again.
               </p>
             </div>
           </div>

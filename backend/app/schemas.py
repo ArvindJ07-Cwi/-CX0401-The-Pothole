@@ -29,3 +29,20 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     user_id: Optional[int] = None
+
+class ComplaintResponse(BaseModel):
+    id: int
+    title: str
+    description: str
+    address: str
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    severity: str
+    status: str
+    before_image_path: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+    citizen_id: int
+
+    class Config:
+        from_attributes = True

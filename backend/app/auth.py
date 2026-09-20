@@ -4,26 +4,36 @@ CX0401 Backend – Authentication Utilities.
 Handles password hashing and JWT creation/validation.
 Provides dependency injection for FastAPI routes.
 """
+import bcrypt
 from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from app import config, models
 from app.database import get_db
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
+
+def _validate_password_for_bcrypt(password: str) -> None:
+    encoded = password.encode("utf-8")
+    if len(encoded) > 72:
+        raise ValueError("Password exceeds bcrypt's 72-byte limit.")
+
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    _validate_password_for_bcrypt(plain_password)
+    return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    _validate_password_for_bcrypt(password)
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()

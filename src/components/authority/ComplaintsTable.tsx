@@ -1,9 +1,11 @@
 import { AlertTriangle, Eye, UserCheck } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import SeverityBadge from '../ui/SeverityBadge';
-import StatusBadge from '../ui/StatusBadge';
 import type { Complaint, ComplaintStatus } from '../../types';
+
+const API = 'http://localhost:8000';
 
 const STATUS_OPTIONS: { value: ComplaintStatus | 'all'; label: string }[] = [
   { value: 'all',         label: 'All Statuses' },
@@ -20,6 +22,8 @@ const PAGE_SIZE = 8;
 
 interface Props {
   complaints: Complaint[];
+  onRefresh: () => void;
+  token: string;
 }
 
 function formatDate(iso: string) {
@@ -28,11 +32,12 @@ function formatDate(iso: string) {
   });
 }
 
-export default function ComplaintsTable({ complaints }: Props) {
+export default function ComplaintsTable({ complaints, onRefresh, token }: Props) {
   const navigate = useNavigate();
-  const [search, setSearch]     = useState('');
+  const [search, setSearch]           = useState('');
   const [statusFilter, setStatusFilter] = useState<ComplaintStatus | 'all'>('all');
-  const [page, setPage]         = useState(1);
+  const [page, setPage]               = useState(1);
+  const [updatingId, setUpdatingId]   = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -52,13 +57,23 @@ export default function ComplaintsTable({ complaints }: Props) {
   const safePage   = Math.min(page, totalPages);
   const pageItems  = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
-  function handleSearch(val: string) {
-    setSearch(val);
-    setPage(1);
-  }
-  function handleStatus(val: ComplaintStatus | 'all') {
-    setStatusFilter(val);
-    setPage(1);
+  function handleSearch(val: string) { setSearch(val); setPage(1); }
+  function handleStatus(val: ComplaintStatus | 'all') { setStatusFilter(val); setPage(1); }
+
+  async function handleStatusChange(complaintId: string, newStatus: string) {
+    setUpdatingId(complaintId);
+    try {
+      await axios.patch(
+        `${API}/api/complaints/${complaintId}/status`,
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      onRefresh();
+    } catch {
+      alert('Failed to update status. Please try again.');
+    } finally {
+      setUpdatingId(null);
+    }
   }
 
   return (
@@ -68,23 +83,18 @@ export default function ComplaintsTable({ complaints }: Props) {
         <div className="flex-1">
           <h3 className="text-slate-800 font-semibold text-sm">Complaints Register</h3>
           <p className="text-slate-400 text-xs mt-0.5">
-            {/* MOCK DATA — replace with API */}
             Showing {filtered.length} of {complaints.length} records
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Search */}
-          <div className="relative">
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Search ID, location…"
-              className="pl-3 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg w-48 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 placeholder-slate-400"
-              aria-label="Search complaints"
-            />
-          </div>
-          {/* Status filter */}
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => handleSearch(e.target.value)}
+            placeholder="Search ID, location…"
+            className="pl-3 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg w-48 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 placeholder-slate-400"
+            aria-label="Search complaints"
+          />
           <select
             value={statusFilter}
             onChange={(e) => handleStatus(e.target.value as ComplaintStatus | 'all')}
@@ -122,7 +132,6 @@ export default function ComplaintsTable({ complaints }: Props) {
             ) : (
               pageItems.map((c) => (
                 <tr key={c.id} className="hover:bg-slate-50/70 transition-colors">
-                  {/* Ref No */}
                   <td className="px-5 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
                       {c.status === 'flagged' && (
@@ -131,7 +140,6 @@ export default function ComplaintsTable({ complaints }: Props) {
                       <span className="font-mono text-xs text-slate-700 font-medium">{c.referenceNo}</span>
                     </div>
                   </td>
-                  {/* Location */}
                   <td className="px-4 py-3 max-w-[200px]">
                     <p className="text-slate-700 text-xs truncate" title={c.location.address}>
                       {c.location.address}
@@ -140,25 +148,31 @@ export default function ComplaintsTable({ complaints }: Props) {
                       <p className="text-slate-400 text-[11px]">{c.location.ward}</p>
                     )}
                   </td>
-                  {/* Date */}
                   <td className="px-4 py-3 whitespace-nowrap text-xs text-slate-500">
                     {formatDate(c.reportedAt)}
                   </td>
-                  {/* Severity */}
                   <td className="px-4 py-3">
                     <SeverityBadge severity={c.severity} />
                   </td>
-                  {/* Contractor */}
                   <td className="px-4 py-3 text-xs text-slate-600">
                     {c.contractorName ?? (
                       <span className="text-slate-300 italic">Unassigned</span>
                     )}
                   </td>
-                  {/* Status */}
                   <td className="px-4 py-3">
-                    <StatusBadge status={c.status} />
+                    {/* Inline status dropdown for authority */}
+                    <select
+                      value={c.status}
+                      disabled={updatingId === c.id}
+                      onChange={(e) => handleStatusChange(c.id, e.target.value)}
+                      className="text-[11px] border border-slate-200 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-700 disabled:opacity-50"
+                      aria-label={`Change status for ${c.referenceNo}`}
+                    >
+                      {STATUS_OPTIONS.filter(o => o.value !== 'all').map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
                   </td>
-                  {/* Actions */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5">
                       <button
@@ -193,9 +207,7 @@ export default function ComplaintsTable({ complaints }: Props) {
       {/* ── Pagination ── */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100">
-          <p className="text-xs text-slate-400">
-            Page {safePage} of {totalPages}
-          </p>
+          <p className="text-xs text-slate-400">Page {safePage} of {totalPages}</p>
           <div className="flex gap-1.5">
             <button
               type="button"

@@ -46,3 +46,12 @@ class ComplaintResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class ContractorListItem(BaseModel):
+    id: int
+    name: str
+    email: str
+    role: str
+
+    class Config:
+        from_attributes = True

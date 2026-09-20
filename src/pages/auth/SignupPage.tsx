@@ -2,11 +2,11 @@ import { Eye, EyeOff, MapPin, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { UserRole } from '../../types';
-import { useRole } from '../../context/RoleContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function SignupPage() {
   const navigate = useNavigate();
-  const { setRole } = useRole();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -19,7 +19,7 @@ export default function SignupPage() {
     selectedRole: 'citizen' as UserRole,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -40,13 +40,53 @@ export default function SignupPage() {
 
     setIsLoading(true);
 
-    // Mock authentication delay
-    setTimeout(() => {
-      setIsLoading(false);
-      // For demo purposes, auto-login with the selected role
-      setRole(formData.selectedRole);
+    try {
+      // 1. Register
+      const registerRes = await fetch('http://localhost:8000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: formData.selectedRole
+        })
+      });
+
+      if (!registerRes.ok) {
+        const errData = await registerRes.json();
+        throw new Error(errData.detail || 'Registration failed');
+      }
+
+      // 2. Login automatically
+      const tokenRes = await fetch('http://localhost:8000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          username: formData.email,
+          password: formData.password,
+        })
+      });
+
+      if (!tokenRes.ok) throw new Error('Auto-login failed. Please sign in.');
+      const tokenData = await tokenRes.json();
+
+      // 3. Get User Profile
+      const userRes = await fetch('http://localhost:8000/api/auth/me', {
+        headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+      });
+      
+      if (!userRes.ok) throw new Error('Failed to fetch user profile');
+      const userData = await userRes.json();
+
+      // 4. Update Auth Context
+      login(tokenData.access_token, userData);
       navigate('/');
-    }, 1500);
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during registration.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -78,11 +118,6 @@ export default function SignupPage() {
                 <span>{error}</span>
               </div>
             )}
-
-            <div className="bg-blue-50 border border-blue-200 text-blue-700 text-xs p-3 rounded-lg">
-              <span className="font-semibold block mb-1">Demo Mode Active</span>
-              No backend connected. Registration simulates success and logs you in automatically.
-            </div>
 
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-slate-700">

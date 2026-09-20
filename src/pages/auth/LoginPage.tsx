@@ -1,9 +1,11 @@
 import { Eye, EyeOff, MapPin, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -13,7 +15,7 @@ export default function LoginPage() {
     password: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
@@ -24,12 +26,43 @@ export default function LoginPage() {
 
     setIsLoading(true);
 
-    // Mock authentication delay
-    setTimeout(() => {
-      setIsLoading(false);
-      // For demo purposes, any login succeeds.
+    try {
+      // 1. Get Token
+      const tokenRes = await fetch('http://localhost:8000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          username: formData.email,
+          password: formData.password,
+        })
+      });
+
+      if (!tokenRes.ok) {
+        const errData = await tokenRes.json();
+        throw new Error(errData.detail || 'Login failed');
+      }
+
+      const tokenData = await tokenRes.json();
+
+      // 2. Get User Profile
+      const userRes = await fetch('http://localhost:8000/api/auth/me', {
+        headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+      });
+
+      if (!userRes.ok) {
+        throw new Error('Failed to fetch user profile');
+      }
+
+      const userData = await userRes.json();
+
+      // 3. Update Auth Context
+      login(tokenData.access_token, userData);
       navigate('/');
-    }, 1200);
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during login.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -61,11 +94,6 @@ export default function LoginPage() {
                 <span>{error}</span>
               </div>
             )}
-
-            <div className="bg-blue-50 border border-blue-200 text-blue-700 text-xs p-3 rounded-lg">
-              <span className="font-semibold block mb-1">Demo Mode Active</span>
-              No backend connected. Any email/password combination will work.
-            </div>
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-700">

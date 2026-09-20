@@ -30,6 +30,23 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     user_id: Optional[int] = None
 
+class RepairEvidenceResponse(BaseModel):
+    id: int
+    after_image_path: Optional[str] = None
+    repair_notes: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    submitted_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class AssignmentResponse(BaseModel):
+    contractor_id: int
+    
+    class Config:
+        from_attributes = True
+
 class ComplaintResponse(BaseModel):
     id: int
     title: str
@@ -43,6 +60,8 @@ class ComplaintResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     citizen_id: int
+    repair_evidence: Optional[RepairEvidenceResponse] = None
+    assignment: Optional[AssignmentResponse] = None
 
     class Config:
         from_attributes = True

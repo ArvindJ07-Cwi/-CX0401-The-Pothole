@@ -147,7 +147,15 @@ def get_complaints(
             .order_by(models.Complaint.created_at.desc())
             .all()
         )
-    # Authority and contractor see all
+    elif current_user.role == "contractor":
+        return (
+            db.query(models.Complaint)
+            .join(models.Assignment)
+            .filter(models.Assignment.contractor_id == current_user.id)
+            .order_by(models.Complaint.created_at.desc())
+            .all()
+        )
+    # Authority sees all
     return (
         db.query(models.Complaint)
         .order_by(models.Complaint.created_at.desc())
@@ -166,8 +174,13 @@ def get_complaint(
     complaint = db.query(models.Complaint).filter(models.Complaint.id == complaint_id).first()
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found.")
+    
     if current_user.role == "citizen" and complaint.citizen_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to view this complaint.")
+    elif current_user.role == "contractor":
+        if not complaint.assignment or complaint.assignment.contractor_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Not authorized to view this assigned complaint.")
+            
     return complaint
 
 
@@ -255,3 +268,63 @@ def list_contractors(
         .all()
     )
     return contractors
+
+
+# ── POST /api/complaints/{id}/evidence ────────────────────────────────────────
+
+@router.post("/api/complaints/{complaint_id}/evidence", response_model=schemas.ComplaintResponse)
+def submit_evidence(
+    complaint_id: int,
+    repair_notes: Optional[str] = Form(None),
+    lat: Optional[float] = Form(None),
+    lng: Optional[float] = Form(None),
+    afterPhoto: UploadFile = File(...),
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.role != "contractor":
+        raise HTTPException(status_code=403, detail="Only contractors can submit evidence.")
+
+    complaint = db.query(models.Complaint).filter(models.Complaint.id == complaint_id).first()
+    if not complaint:
+        raise HTTPException(status_code=404, detail="Complaint not found.")
+
+    if not complaint.assignment or complaint.assignment.contractor_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to submit evidence for this complaint.")
+        
+    if complaint.repair_evidence:
+        raise HTTPException(status_code=400, detail="Evidence already submitted for this complaint.")
+
+    # Validate and save image
+    ext = os.path.splitext(afterPhoto.filename)[1].lower() if afterPhoto.filename else ""
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail=f"Invalid image format '{ext}'. Accepted: JPEG, PNG, WebP, HEIC.")
+        
+    contents = afterPhoto.file.read()
+    if len(contents) > MAX_FILE_BYTES:
+        raise HTTPException(status_code=413, detail="Image must be under 10 MB.")
+
+    filename = f"{uuid.uuid4()}{ext}"
+    filepath = os.path.join(UPLOAD_DIR, filename)
+    with open(filepath, "wb") as f:
+        f.write(contents)
+    
+    image_path = f"/uploads/{filename}"
+
+    # Create evidence
+    evidence = models.RepairEvidence(
+        complaint_id=complaint_id,
+        contractor_id=current_user.id,
+        after_image_path=image_path,
+        repair_notes=repair_notes,
+        latitude=lat,
+        longitude=lng,
+    )
+    db.add(evidence)
+    
+    # Update status
+    complaint.status = "submitted"
+    db.commit()
+    db.refresh(complaint)
+    
+    return complaint

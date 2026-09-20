@@ -34,6 +34,7 @@ class User(Base):
         nullable=False,
         default="citizen",
     )
+    service_area = Column(String(120), nullable=True)  # e.g. "Pune", "Mumbai" — used for contractors
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     # relationships

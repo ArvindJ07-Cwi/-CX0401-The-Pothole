@@ -30,22 +30,30 @@ export default function CitizenDashboard() {
         });
         
         // Map backend response to frontend Complaint type
-        const mapped: Complaint[] = res.data.map((c: any) => ({
-          id: String(c.id),
-          referenceNo: `COMP-${String(c.id).padStart(4, '0')}`,
-          title: c.title,
-          description: c.description,
-          location: {
-            address: c.address,
-            coordinates: { lat: c.latitude || 0, lng: c.longitude || 0 },
-          },
-          severity: c.severity,
-          status: c.status,
-          reportedBy: String(c.citizen_id),
-          reportedAt: c.created_at,
-          beforePhotoUrl: c.before_image_path ? `http://localhost:8000${c.before_image_path}` : undefined,
-          updatedAt: c.updated_at
-        }));
+        const mapped: Complaint[] = res.data.map((c: any) => {
+          const assignment = c.assignment || {};
+          const evidence = c.repair_evidence || {};
+          return {
+            id: String(c.id),
+            referenceNo: `COMP-${String(c.id).padStart(4, '0')}`,
+            title: c.title,
+            description: c.description,
+            location: {
+              address: c.address,
+              coordinates: { lat: c.latitude || 0, lng: c.longitude || 0 },
+            },
+            severity: c.severity,
+            status: c.status,
+            reportedBy: String(c.citizen_id),
+            reportedAt: c.created_at,
+            beforePhotoUrl: c.before_image_path ? `http://localhost:8000${c.before_image_path}` : undefined,
+            afterPhotoUrl: evidence.after_image_path ? `http://localhost:8000${evidence.after_image_path}` : undefined,
+            repairNote: evidence.repair_notes ?? undefined,
+            updatedAt: c.updated_at,
+            contractorName: assignment.contractor_name || evidence.contractor_name || undefined,
+            assignedTo: assignment.contractor_id ? String(assignment.contractor_id) : undefined,
+          };
+        });
         
         setComplaints(mapped);
       } catch (err) {

@@ -7,14 +7,14 @@ Endpoints:
   GET    /api/complaints/{id}                – get single complaint
   PATCH  /api/complaints/{id}/status         – authority updates status
   POST   /api/complaints/{id}/assign         – authority assigns contractor
-  GET    /api/contractors                    – list registered contractors (authority only)
+  GET    /api/contractors                    – list contractors (authority, with optional area filter)
+  POST   /api/complaints/{id}/evidence       – contractor submits repair evidence
 """
 import os
 import uuid
-import shutil
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -34,7 +34,6 @@ MAX_FILE_BYTES = 10 * 1024 * 1024  # 10 MB
 
 class StatusUpdateBody(BaseModel):
     status: str
-
 
 class AssignContractorBody(BaseModel):
     contractor_id: int
@@ -56,22 +55,57 @@ def _require_authority(user: models.User) -> None:
         )
 
 
-def _map_complaint(c: models.Complaint) -> dict:
-    """Convert ORM Complaint to dict for the Pydantic schema."""
-    return {
-        "id": c.id,
-        "title": c.title,
-        "description": c.description,
-        "address": c.address,
-        "latitude": c.latitude,
-        "longitude": c.longitude,
-        "severity": c.severity,
-        "status": c.status,
-        "before_image_path": c.before_image_path,
-        "created_at": c.created_at,
-        "updated_at": c.updated_at,
-        "citizen_id": c.citizen_id,
+def _extract_city_from_address(address: str) -> Optional[str]:
+    """Extract city name from complaint address using simple keyword matching."""
+    if not address:
+        return None
+    addr_lower = address.lower()
+    known_cities = ["pune", "mumbai", "nagpur", "nashik", "aurangabad", "thane", "solapur", "kolhapur"]
+    for city in known_cities:
+        if city in addr_lower:
+            return city.capitalize()
+    return None
+
+
+def _enrich_complaint(complaint: models.Complaint) -> dict:
+    """Build a dict from a Complaint ORM object with nested contractor details."""
+    result = {
+        "id": complaint.id,
+        "title": complaint.title,
+        "description": complaint.description,
+        "address": complaint.address,
+        "latitude": complaint.latitude,
+        "longitude": complaint.longitude,
+        "severity": complaint.severity,
+        "status": complaint.status,
+        "before_image_path": complaint.before_image_path,
+        "created_at": complaint.created_at,
+        "updated_at": complaint.updated_at,
+        "citizen_id": complaint.citizen_id,
+        "assignment": None,
+        "repair_evidence": None,
     }
+
+    if complaint.assignment:
+        contractor = complaint.assignment.contractor
+        result["assignment"] = {
+            "contractor_id": complaint.assignment.contractor_id,
+            "contractor_name": contractor.name if contractor else None,
+        }
+
+    if complaint.repair_evidence:
+        contractor = complaint.repair_evidence.contractor
+        result["repair_evidence"] = {
+            "id": complaint.repair_evidence.id,
+            "after_image_path": complaint.repair_evidence.after_image_path,
+            "repair_notes": complaint.repair_evidence.repair_notes,
+            "latitude": complaint.repair_evidence.latitude,
+            "longitude": complaint.repair_evidence.longitude,
+            "submitted_at": complaint.repair_evidence.submitted_at,
+            "contractor_name": contractor.name if contractor else None,
+        }
+
+    return result
 
 
 # ── POST /api/complaints ───────────────────────────────────────────────────────
@@ -105,7 +139,6 @@ def create_complaint(
                 status_code=400,
                 detail=f"Invalid image format '{ext}'. Accepted: JPEG, PNG, WebP, HEIC.",
             )
-        # Read & size-check
         contents = beforePhoto.file.read()
         if len(contents) > MAX_FILE_BYTES:
             raise HTTPException(status_code=413, detail="Image must be under 10 MB.")
@@ -130,7 +163,7 @@ def create_complaint(
     db.add(new_complaint)
     db.commit()
     db.refresh(new_complaint)
-    return new_complaint
+    return _enrich_complaint(new_complaint)
 
 
 # ── GET /api/complaints ────────────────────────────────────────────────────────
@@ -141,26 +174,28 @@ def get_complaints(
     db: Session = Depends(get_db),
 ):
     if current_user.role == "citizen":
-        return (
+        complaints = (
             db.query(models.Complaint)
             .filter(models.Complaint.citizen_id == current_user.id)
             .order_by(models.Complaint.created_at.desc())
             .all()
         )
     elif current_user.role == "contractor":
-        return (
+        complaints = (
             db.query(models.Complaint)
             .join(models.Assignment)
             .filter(models.Assignment.contractor_id == current_user.id)
             .order_by(models.Complaint.created_at.desc())
             .all()
         )
-    # Authority sees all
-    return (
-        db.query(models.Complaint)
-        .order_by(models.Complaint.created_at.desc())
-        .all()
-    )
+    else:
+        # Authority sees all
+        complaints = (
+            db.query(models.Complaint)
+            .order_by(models.Complaint.created_at.desc())
+            .all()
+        )
+    return [_enrich_complaint(c) for c in complaints]
 
 
 # ── GET /api/complaints/{id} ───────────────────────────────────────────────────
@@ -181,7 +216,7 @@ def get_complaint(
         if not complaint.assignment or complaint.assignment.contractor_id != current_user.id:
             raise HTTPException(status_code=403, detail="Not authorized to view this assigned complaint.")
             
-    return complaint
+    return _enrich_complaint(complaint)
 
 
 # ── PATCH /api/complaints/{id}/status ─────────────────────────────────────────
@@ -205,7 +240,7 @@ def update_complaint_status(
     complaint.status = body.status
     db.commit()
     db.refresh(complaint)
-    return complaint
+    return _enrich_complaint(complaint)
 
 
 # ── POST /api/complaints/{id}/assign ──────────────────────────────────────────
@@ -230,6 +265,20 @@ def assign_complaint(
     if not contractor:
         raise HTTPException(status_code=404, detail="Contractor not found.")
 
+    # ── Service-area validation ──
+    complaint_city = _extract_city_from_address(complaint.address)
+    if contractor.service_area and complaint_city:
+        if contractor.service_area.lower() != complaint_city.lower():
+            raise HTTPException(
+                status_code=400,
+                detail=f"Contractor's service area '{contractor.service_area}' does not match complaint location '{complaint_city}'.",
+            )
+    elif contractor.service_area and not complaint_city:
+        raise HTTPException(
+            status_code=400,
+            detail="Complaint location could not be determined. Cannot validate service-area match.",
+        )
+
     # Create or update Assignment
     assignment = (
         db.query(models.Assignment)
@@ -250,23 +299,32 @@ def assign_complaint(
     complaint.status = "assigned"
     db.commit()
     db.refresh(complaint)
-    return complaint
+    return _enrich_complaint(complaint)
 
 
 # ── GET /api/contractors ───────────────────────────────────────────────────────
 
 @router.get("/api/contractors", response_model=List[schemas.ContractorListItem])
 def list_contractors(
+    complaint_id: Optional[int] = Query(None, description="Filter contractors by complaint's service area"),
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(get_db),
 ):
     _require_authority(current_user)
-    contractors = (
-        db.query(models.User)
-        .filter(models.User.role == "contractor")
-        .order_by(models.User.name)
-        .all()
-    )
+
+    query = db.query(models.User).filter(models.User.role == "contractor")
+
+    # If complaint_id is provided, filter by service area match
+    if complaint_id is not None:
+        complaint = db.query(models.Complaint).filter(models.Complaint.id == complaint_id).first()
+        if complaint:
+            city = _extract_city_from_address(complaint.address)
+            if city:
+                query = query.filter(
+                    models.User.service_area.ilike(city)
+                )
+
+    contractors = query.order_by(models.User.name).all()
     return contractors
 
 
@@ -327,4 +385,4 @@ def submit_evidence(
     db.commit()
     db.refresh(complaint)
     
-    return complaint
+    return _enrich_complaint(complaint)

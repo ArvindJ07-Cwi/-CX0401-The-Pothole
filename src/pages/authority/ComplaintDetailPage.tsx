@@ -19,6 +19,8 @@ interface ApiContractor {
 
 /** Map a raw API complaint to the frontend Complaint type */
 function mapComplaint(c: any): Complaint {
+  const assignment = c.assignment || {};
+  const evidence = c.repair_evidence || {};
   return {
     id: String(c.id),
     referenceNo: `COMP-${String(c.id).padStart(4, '0')}`,
@@ -33,9 +35,11 @@ function mapComplaint(c: any): Complaint {
     reportedBy: String(c.citizen_id),
     reportedAt: c.created_at,
     beforePhotoUrl: c.before_image_path ? `${API}${c.before_image_path}` : undefined,
+    afterPhotoUrl: evidence.after_image_path ? `${API}${evidence.after_image_path}` : undefined,
+    repairNote: evidence.repair_notes ?? undefined,
     updatedAt: c.updated_at,
-    contractorName: c.contractor_name ?? undefined,
-    assignedTo: c.contractor_id ? String(c.contractor_id) : undefined,
+    contractorName: assignment.contractor_name || evidence.contractor_name || undefined,
+    assignedTo: assignment.contractor_id ? String(assignment.contractor_id) : undefined,
   };
 }
 
@@ -67,7 +71,7 @@ export default function ComplaintDetailPage() {
             headers: { Authorization: `Bearer ${token}` },
           }),
           isAuthority
-            ? axios.get(`${API}/api/contractors`, {
+            ? axios.get(`${API}/api/contractors?complaint_id=${id}`, {
                 headers: { Authorization: `Bearer ${token}` },
               })
             : Promise.resolve({ data: [] }),
@@ -239,6 +243,14 @@ export default function ComplaintDetailPage() {
             <h3 className="text-slate-700 font-semibold text-sm border-b border-slate-100 pb-2 mb-3">{complaint.title}</h3>
             <p className="text-slate-600 text-sm leading-relaxed">{complaint.description}</p>
           </div>
+
+          {/* Repair Notes */}
+          {complaint.repairNote && (
+            <div className="bg-white rounded-xl border border-slate-200 p-5">
+              <h3 className="text-slate-700 font-semibold text-sm border-b border-slate-100 pb-2 mb-3">Repair Notes</h3>
+              <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap">{complaint.repairNote}</p>
+            </div>
+          )}
 
           {/* AI Verification Section */}
           {hasVerification && vr && (

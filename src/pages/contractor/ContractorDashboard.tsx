@@ -10,6 +10,8 @@ import type { Complaint } from '../../types';
 const API = 'http://localhost:8000';
 
 function mapComplaint(c: any): Complaint {
+  const assignment = c.assignment || {};
+  const evidence = c.repair_evidence || {};
   return {
     id: String(c.id),
     referenceNo: `COMP-${String(c.id).padStart(4, '0')}`,
@@ -24,11 +26,11 @@ function mapComplaint(c: any): Complaint {
     reportedBy: String(c.citizen_id),
     reportedAt: c.created_at,
     beforePhotoUrl: c.before_image_path ? `${API}${c.before_image_path}` : undefined,
-    afterPhotoUrl: c.repair_evidence?.after_image_path ? `${API}${c.repair_evidence.after_image_path}` : undefined,
-    repairNote: c.repair_evidence?.repair_notes ?? undefined,
+    afterPhotoUrl: evidence.after_image_path ? `${API}${evidence.after_image_path}` : undefined,
+    repairNote: evidence.repair_notes ?? undefined,
     updatedAt: c.updated_at,
-    contractorName: c.contractor_name ?? undefined,
-    assignedTo: c.contractor_id ? String(c.contractor_id) : undefined,
+    contractorName: assignment.contractor_name || evidence.contractor_name || undefined,
+    assignedTo: assignment.contractor_id ? String(assignment.contractor_id) : undefined,
   };
 }
 

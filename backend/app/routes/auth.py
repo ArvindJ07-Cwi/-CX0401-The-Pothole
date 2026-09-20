@@ -46,7 +46,8 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         name=user.name,
         email=user.email,
         password_hash=hashed_password,
-        role=user.role
+        role=user.role,
+        service_area=user.service_area if user.role == "contractor" else None,
     )
     
     db.add(new_user)

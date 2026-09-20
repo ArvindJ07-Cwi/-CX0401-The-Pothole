@@ -14,10 +14,12 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
     role: str
+    service_area: Optional[str] = None
 
 class UserResponse(UserBase):
     id: int
     role: str
+    service_area: Optional[str] = None
     created_at: datetime
     
     class Config:
@@ -37,12 +39,14 @@ class RepairEvidenceResponse(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     submitted_at: datetime
+    contractor_name: Optional[str] = None
 
     class Config:
         from_attributes = True
 
 class AssignmentResponse(BaseModel):
     contractor_id: int
+    contractor_name: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -71,6 +75,7 @@ class ContractorListItem(BaseModel):
     name: str
     email: str
     role: str
+    service_area: Optional[str] = None
 
     class Config:
         from_attributes = True

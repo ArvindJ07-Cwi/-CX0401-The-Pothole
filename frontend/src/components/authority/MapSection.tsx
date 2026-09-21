@@ -8,18 +8,34 @@ import SeverityBadge from '../ui/SeverityBadge';
 import StatusBadge from '../ui/StatusBadge';
 import type { Complaint, ComplaintStatus, Severity } from '../../types';
 
-const SEVERITY_COLOR: Record<string, string> = {
-  critical: 'bg-red-500',
-  high:     'bg-orange-400',
-  medium:   'bg-amber-400',
-  low:      'bg-green-400',
+const STATUS_COLOR: Record<string, string> = {
+  pending: 'bg-slate-400',
+  assigned: 'bg-blue-500',
+  in_progress: 'bg-amber-500',
+  submitted: 'bg-violet-500',
+  verified: 'bg-emerald-500',
+  flagged: 'bg-red-500',
+  rejected: 'bg-slate-400',
 };
 
-const SEVERITY_HEX: Record<string, string> = {
-  critical: '#ef4444',
-  high:      '#fb923c',
-  medium:   '#fbbf24',
-  low:      '#4ade80',
+const STATUS_HEX: Record<string, string> = {
+  pending: '#94a3b8',      // slate-400
+  assigned: '#3b82f6',     // blue-500
+  in_progress: '#f59e0b',  // amber-500
+  submitted: '#8b5cf6',    // violet-500
+  verified: '#10b981',     // emerald-500
+  flagged: '#ef4444',      // red-500
+  rejected: '#94a3b8',     // slate-400
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  pending: 'Reported',
+  assigned: 'Assigned',
+  in_progress: 'In Progress',
+  submitted: 'Submitted',
+  verified: 'Verified',
+  flagged: 'Flagged',
+  rejected: 'Rejected',
 };
 
 interface Props {
@@ -38,9 +54,9 @@ function FitBounds({ coords }: { coords: [number, number][] }) {
   return null;
 }
 
-// Generate a custom DivIcon based on severity
-function getIcon(severity: string) {
-  const color = SEVERITY_HEX[severity] || '#3b82f6';
+// Generate a custom DivIcon based on status
+function getIcon(status: string) {
+  const color = STATUS_HEX[status] || '#94a3b8'; // fallback to grey
   return L.divIcon({
     className: 'custom-leaflet-marker',
     html: `<div style="background-color: ${color}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.4);"></div>`,
@@ -72,10 +88,12 @@ export default function MapSection({ complaints }: Props) {
 
   // Legend counts (unfiltered by status, or filtered? We'll show total counts matching current status filter)
   const counts = {
-    critical: mapData.filter(c => c.severity === 'critical').length,
-    high:     mapData.filter(c => c.severity === 'high').length,
-    medium:   mapData.filter(c => c.severity === 'medium').length,
-    low:      mapData.filter(c => c.severity === 'low').length,
+    pending:     mapData.filter(c => c.status === 'pending').length,
+    assigned:    mapData.filter(c => c.status === 'assigned').length,
+    in_progress: mapData.filter(c => c.status === 'in_progress').length,
+    submitted:   mapData.filter(c => c.status === 'submitted').length,
+    verified:    mapData.filter(c => c.status === 'verified').length,
+    flagged:     mapData.filter(c => c.status === 'flagged').length,
   };
 
   return (
@@ -120,8 +138,8 @@ export default function MapSection({ complaints }: Props) {
         <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Legend:</span>
         {(Object.entries(counts) as [string, number][]).map(([key, val]) => (
           <div key={key} className="flex items-center gap-1.5">
-            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${SEVERITY_COLOR[key]}`} />
-            <span className="text-[11px] text-slate-600 capitalize whitespace-nowrap">{key} ({val})</span>
+            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${STATUS_COLOR[key]}`} />
+            <span className="text-[11px] text-slate-600 whitespace-nowrap">{STATUS_LABEL[key]} ({val})</span>
           </div>
         ))}
       </div>
@@ -143,7 +161,7 @@ export default function MapSection({ complaints }: Props) {
               <Marker
                 key={c.id}
                 position={[c.location.coordinates!.lat, c.location.coordinates!.lng]}
-                icon={getIcon(c.severity)}
+                icon={getIcon(c.status)}
               >
                 <Popup className="custom-popup">
                   <div className="min-w-[180px]">

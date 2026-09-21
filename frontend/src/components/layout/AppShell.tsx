@@ -20,7 +20,7 @@ export default function AppShell() {
   const title =
     PAGE_TITLES[pathname] ??
     Object.entries(PAGE_TITLES).find(([key]) => key !== '/' && pathname.startsWith(key))?.[1] ??
-    'CX0401';
+    'SadakSetu';
 
   return (
     <div className="flex w-full min-h-screen">

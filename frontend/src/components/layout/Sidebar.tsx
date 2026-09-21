@@ -93,7 +93,7 @@ export default function Sidebar() {
             <MapPin size={16} className="text-white" />
           </div>
           <div>
-            <p className="text-white font-semibold text-sm leading-none">CX0401</p>
+            <p className="text-white font-semibold text-sm leading-none">SadakSetu</p>
             <p className="text-slate-400 text-[11px] mt-0.5 leading-none">Pothole Platform</p>
           </div>
         </div>
@@ -130,7 +130,7 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div className="px-5 py-4 border-t border-slate-700/60 text-[11px] text-slate-500">
-        Hackathon · CX0401 · v0.1
+        Hackathon · SadakSetu · v0.1
       </div>
     </aside>
   );

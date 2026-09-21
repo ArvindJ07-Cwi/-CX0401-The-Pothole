@@ -2,10 +2,10 @@ import type { Complaint, Contractor } from '../types';
 
 // ── Mock contractors ──────────────────────────────────────────────────────────
 export const MOCK_CONTRACTORS: Contractor[] = [
-  { id: 'c1', name: 'Apex Road Works Ltd.',    licenseNo: 'MH-RW-1042', activeJobs: 4 },
-  { id: 'c2', name: 'SurePath Infrastructure', licenseNo: 'MH-RW-2071', activeJobs: 2 },
-  { id: 'c3', name: 'Bharat Civil Corp.',      licenseNo: 'MH-RW-3315', activeJobs: 5 },
-  { id: 'c4', name: 'Metro Pave Solutions',    licenseNo: 'MH-RW-4108', activeJobs: 1 },
+  { id: 'c1', name: 'Apex Road Works Ltd.',    email: 'apex@test.com', role: 'contractor', serviceAreas: [] },
+  { id: 'c2', name: 'SurePath Infrastructure', email: 'sure@test.com', role: 'contractor', serviceAreas: [] },
+  { id: 'c3', name: 'Bharat Civil Corp.',      email: 'bharat@test.com', role: 'contractor', serviceAreas: [] },
+  { id: 'c4', name: 'Metro Pave Solutions',    email: 'metro@test.com', role: 'contractor', serviceAreas: [] },
 ];
 
 // ── Mock complaints ───────────────────────────────────────────────────────────

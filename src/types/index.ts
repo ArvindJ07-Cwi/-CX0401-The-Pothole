@@ -20,7 +20,14 @@ export interface LatLng {
   lng: number;
 }
 
-// ── Complaint ─────────────────────────────────────────────────────────────────
+export interface GeographicArea {
+  id: number;
+  name: string;
+  level: 'state' | 'region' | 'city' | 'locality';
+  parent_id: number | null;
+  full_path: string;
+}
+
 export interface Complaint {
   id: string;
   referenceNo: string;
@@ -37,9 +44,11 @@ export interface Complaint {
   reportedAt: string;         // ISO date string
   assignedTo?: string;        // contractor id
   contractorName?: string;
+  contractorEmail?: string;
   beforePhotoUrl?: string;
   afterPhotoUrl?: string;
   repairNote?: string;
+  locationArea?: GeographicArea;
   verificationResult?: VerificationResult;
   updatedAt: string;
 }
@@ -65,8 +74,9 @@ export interface VerificationResult {
 export interface Contractor {
   id: string;
   name: string;
-  licenseNo: string;
-  activeJobs: number;
+  email: string;
+  role: string;
+  serviceAreas: GeographicArea[];
 }
 
 // ── Stats summary (for dashboards) ───────────────────────────────────────────

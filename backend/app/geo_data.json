@@ -1,0 +1,85 @@
+{
+  "Maharashtra": {
+    "level": "state",
+    "children": {
+      "Pune Region": {
+        "level": "region",
+        "children": {
+          "Pune City": {
+            "level": "city",
+            "children": {
+              "Shivaji Nagar": { "level": "locality" },
+              "Kothrud": { "level": "locality" },
+              "Hinjewadi": { "level": "locality" },
+              "Hadapsar": { "level": "locality" },
+              "Viman Nagar": { "level": "locality" },
+              "Baner": { "level": "locality" },
+              "Wakad": { "level": "locality" }
+            }
+          },
+          "Pimpri-Chinchwad": {
+            "level": "city",
+            "children": {
+              "Pimpri": { "level": "locality" },
+              "Chinchwad": { "level": "locality" },
+              "Nigdi": { "level": "locality" }
+            }
+          }
+        }
+      },
+      "Thane Region": {
+        "level": "region",
+        "children": {
+          "Thane City": {
+            "level": "city",
+            "children": {
+              "Ghodbunder Road": { "level": "locality" },
+              "Kalyan": { "level": "locality" },
+              "Dombivli": { "level": "locality" },
+              "Naupada": { "level": "locality" }
+            }
+          },
+          "Navi Mumbai": {
+            "level": "city",
+            "children": {
+              "Vashi": { "level": "locality" },
+              "Belapur": { "level": "locality" },
+              "Kharghar": { "level": "locality" },
+              "Panvel": { "level": "locality" }
+            }
+          }
+        }
+      },
+      "Mumbai Region": {
+        "level": "region",
+        "children": {
+          "Mumbai City": {
+            "level": "city",
+            "children": {
+              "Andheri": { "level": "locality" },
+              "Bandra": { "level": "locality" },
+              "Dadar": { "level": "locality" },
+              "Borivali": { "level": "locality" },
+              "Goregaon": { "level": "locality" },
+              "Malad": { "level": "locality" },
+              "Powai": { "level": "locality" }
+            }
+          }
+        }
+      },
+      "Nagpur Region": {
+        "level": "region",
+        "children": {
+          "Nagpur City": {
+            "level": "city",
+            "children": {
+              "Dharampeth": { "level": "locality" },
+              "Sadar": { "level": "locality" },
+              "Sitabuldi": { "level": "locality" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

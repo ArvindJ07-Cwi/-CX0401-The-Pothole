@@ -1,8 +1,10 @@
 import { Eye, EyeOff, MapPin, AlertCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import type { UserRole } from '../../types';
+import type { UserRole, GeographicArea } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import LocationSelector from '../../components/ui/LocationSelector';
+import axios from 'axios';
 
 export default function SignupPage() {
   const navigate = useNavigate();
@@ -10,6 +12,9 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  const [areas, setAreas] = useState<GeographicArea[]>([]);
+  const [selectedAreaIds, setSelectedAreaIds] = useState<number[]>([]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -18,6 +23,12 @@ export default function SignupPage() {
     confirmPassword: '',
     selectedRole: 'citizen' as UserRole,
   });
+
+  useEffect(() => {
+    axios.get('http://localhost:8000/api/geo/areas')
+      .then(res => setAreas(res.data))
+      .catch(err => console.error("Failed to load geo areas", err));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +49,11 @@ export default function SignupPage() {
       return;
     }
 
+    if (formData.selectedRole === 'contractor' && selectedAreaIds.length === 0) {
+      setError('Contractors must select at least one service area.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -49,7 +65,8 @@ export default function SignupPage() {
           name: formData.name,
           email: formData.email,
           password: formData.password,
-          role: formData.selectedRole
+          role: formData.selectedRole,
+          service_area_ids: formData.selectedRole === 'contractor' ? selectedAreaIds : undefined
         })
       });
 
@@ -237,6 +254,23 @@ export default function SignupPage() {
                 </label>
               </div>
             </div>
+
+            {formData.selectedRole === 'contractor' && (
+              <div className="pt-2">
+                <label className="block text-sm font-medium text-slate-700 mb-3">
+                  Service Areas <span className="text-red-500">*</span>
+                  <span className="block text-xs text-slate-500 font-normal mt-0.5">
+                    Select the localities, cities, or regions where you operate.
+                  </span>
+                </label>
+                <LocationSelector 
+                  areas={areas}
+                  selectedIds={selectedAreaIds}
+                  onChange={setSelectedAreaIds}
+                  multiSelect={true}
+                />
+              </div>
+            )}
 
             <div className="pt-2">
               <button

@@ -8,10 +8,11 @@ import {
   Send,
   X,
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import type { Severity } from '../../types';
+import type { Severity, GeographicArea } from '../../types';
+import LocationSelector from '../../components/ui/LocationSelector';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 type SubmitState = 'idle' | 'loading' | 'success' | 'error';
@@ -23,6 +24,7 @@ interface FormValues {
   address: string;
   lat: string;
   lng: string;
+  locationAreaId: number | null;
 }
 
 const SEVERITY_OPTIONS: { value: Severity; label: string; color: string }[] = [
@@ -39,6 +41,7 @@ const INITIAL: FormValues = {
   address: '',
   lat: '',
   lng: '',
+  locationAreaId: null,
 };
 
 // ── Field helpers ─────────────────────────────────────────────────────────────
@@ -70,6 +73,7 @@ export default function ReportPotholePage() {
   const navigate    = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [areas, setAreas]         = useState<GeographicArea[]>([]);
   const [values, setValues]       = useState<FormValues>(INITIAL);
   const [errors, setErrors]       = useState<Partial<FormValues>>({});
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -79,6 +83,13 @@ export default function ReportPotholePage() {
   const [locError, setLocError]         = useState('');
   const [submitState, setSubmitState]   = useState<SubmitState>('idle');
   const [generatedRef, setGeneratedRef] = useState('');
+
+  // ── Initialization ────────────────────────────────────────────────────────
+  useEffect(() => {
+    axios.get('http://localhost:8000/api/geo/areas')
+      .then(res => setAreas(res.data))
+      .catch(err => console.error("Failed to load geo areas", err));
+  }, []);
 
   // ── Field change ─────────────────────────────────────────────────────────
   function handleChange(
@@ -156,6 +167,9 @@ export default function ReportPotholePage() {
       errs.description = 'Please provide at least 20 characters of description.';
     if (!values.address.trim())     errs.address     = 'Street address / landmark is required.';
     if (!photoFile)                 setPhotoError('A before photo is required.');
+    
+    // Explicitly validate locationAreaId, though we won't show it in errs directly as a string 
+    // unless we create a string field for it. We'll handle it below.
 
     setErrors(errs);
     return Object.keys(errs).length === 0 && !!photoFile;
@@ -165,6 +179,11 @@ export default function ReportPotholePage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) return;
+    
+    if (!values.locationAreaId) {
+       alert("Please select the geographic location area.");
+       return;
+    }
 
     setSubmitState('loading');
 
@@ -177,6 +196,7 @@ export default function ReportPotholePage() {
       formData.append('address', values.address);
       if (values.lat) formData.append('lat', values.lat);
       if (values.lng) formData.append('lng', values.lng);
+      if (values.locationAreaId) formData.append('location_area_id', String(values.locationAreaId));
       if (photoFile) formData.append('beforePhoto', photoFile);
 
       // Using axios as requested
@@ -392,6 +412,17 @@ export default function ReportPotholePage() {
               }`}
             />
             <FieldError msg={errors.address} />
+          </div>
+
+          {/* Location Area Selector */}
+          <div>
+            <FieldLabel htmlFor="locationAreaId" required>Geographic Area</FieldLabel>
+            <LocationSelector 
+              areas={areas}
+              selectedIds={values.locationAreaId ? [values.locationAreaId] : []}
+              onChange={(ids) => setValues({...values, locationAreaId: ids[0] || null})}
+              multiSelect={false}
+            />
           </div>
 
           {/* Coordinates */}

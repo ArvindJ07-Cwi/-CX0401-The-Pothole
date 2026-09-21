@@ -47,12 +47,26 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         email=user.email,
         password_hash=hashed_password,
         role=user.role,
-        service_area=user.service_area if user.role == "contractor" else None,
+        service_area=None, # Legacy field
     )
     
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+    
+    # Process structured geographic service areas for contractors
+    if user.role == "contractor" and user.service_area_ids:
+        for area_id in user.service_area_ids:
+            # Verify area exists
+            area = db.query(models.GeographicArea).filter(models.GeographicArea.id == area_id).first()
+            if area:
+                svc_area = models.ContractorServiceArea(
+                    contractor_id=new_user.id,
+                    area_id=area_id
+                )
+                db.add(svc_area)
+        db.commit()
+        db.refresh(new_user)
     
     return new_user
 

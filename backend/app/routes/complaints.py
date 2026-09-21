@@ -55,20 +55,21 @@ def _require_authority(user: models.User) -> None:
         )
 
 
-def _extract_city_from_address(address: str) -> Optional[str]:
-    """Extract city name from complaint address using simple keyword matching."""
-    if not address:
-        return None
-    addr_lower = address.lower()
-    known_cities = ["pune", "mumbai", "nagpur", "nashik", "aurangabad", "thane", "solapur", "kolhapur"]
-    for city in known_cities:
-        if city in addr_lower:
-            return city.capitalize()
-    return None
+def _get_ancestor_ids(db: Session, area_id: int) -> set[int]:
+    """Return the set of IDs for the given area and all its ancestors."""
+    ancestors = set()
+    current_id = area_id
+    while current_id:
+        ancestors.add(current_id)
+        area = db.query(models.GeographicArea).filter(models.GeographicArea.id == current_id).first()
+        if not area:
+            break
+        current_id = area.parent_id
+    return ancestors
 
 
 def _enrich_complaint(complaint: models.Complaint) -> dict:
-    """Build a dict from a Complaint ORM object with nested contractor details."""
+    """Build a dict from a Complaint ORM object with nested contractor and location details."""
     result = {
         "id": complaint.id,
         "title": complaint.title,
@@ -84,6 +85,7 @@ def _enrich_complaint(complaint: models.Complaint) -> dict:
         "citizen_id": complaint.citizen_id,
         "assignment": None,
         "repair_evidence": None,
+        "location_area": complaint.location_area,
     }
 
     if complaint.assignment:
@@ -91,6 +93,7 @@ def _enrich_complaint(complaint: models.Complaint) -> dict:
         result["assignment"] = {
             "contractor_id": complaint.assignment.contractor_id,
             "contractor_name": contractor.name if contractor else None,
+            "contractor_email": contractor.email if contractor else None,
         }
 
     if complaint.repair_evidence:
@@ -118,6 +121,7 @@ def create_complaint(
     severity: str = Form(...),
     lat: Optional[float] = Form(None),
     lng: Optional[float] = Form(None),
+    location_area_id: Optional[int] = Form(None),
     beforePhoto: Optional[UploadFile] = File(None),
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(get_db),
@@ -159,6 +163,7 @@ def create_complaint(
         severity=severity,
         status="pending",
         before_image_path=image_path,
+        location_area_id=location_area_id,
     )
     db.add(new_complaint)
     db.commit()
@@ -243,6 +248,31 @@ def update_complaint_status(
     return _enrich_complaint(complaint)
 
 
+class ClassifyLocationBody(BaseModel):
+    location_area_id: int
+
+@router.patch("/api/complaints/{complaint_id}/location", response_model=schemas.ComplaintResponse)
+def classify_complaint_location(
+    complaint_id: int,
+    body: ClassifyLocationBody,
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(get_db),
+):
+    _require_authority(current_user)
+
+    complaint = db.query(models.Complaint).filter(models.Complaint.id == complaint_id).first()
+    if not complaint:
+        raise HTTPException(status_code=404, detail="Complaint not found.")
+
+    area = db.query(models.GeographicArea).filter(models.GeographicArea.id == body.location_area_id).first()
+    if not area:
+        raise HTTPException(status_code=400, detail="Invalid location area.")
+
+    complaint.location_area_id = body.location_area_id
+    db.commit()
+    db.refresh(complaint)
+    return _enrich_complaint(complaint)
+
 # ── POST /api/complaints/{id}/assign ──────────────────────────────────────────
 
 @router.post("/api/complaints/{complaint_id}/assign", response_model=schemas.ComplaintResponse)
@@ -258,6 +288,12 @@ def assign_complaint(
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found.")
 
+    if not complaint.location_area_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Complaint location is unclassified. Please set the location area first."
+        )
+
     contractor = db.query(models.User).filter(
         models.User.id == body.contractor_id,
         models.User.role == "contractor",
@@ -265,18 +301,21 @@ def assign_complaint(
     if not contractor:
         raise HTTPException(status_code=404, detail="Contractor not found.")
 
-    # ── Service-area validation ──
-    complaint_city = _extract_city_from_address(complaint.address)
-    if contractor.service_area and complaint_city:
-        if contractor.service_area.lower() != complaint_city.lower():
-            raise HTTPException(
-                status_code=400,
-                detail=f"Contractor's service area '{contractor.service_area}' does not match complaint location '{complaint_city}'.",
-            )
-    elif contractor.service_area and not complaint_city:
+    # ── Service-area hierarchical validation ──
+    complaint_ancestor_ids = _get_ancestor_ids(db, complaint.location_area_id)
+    contractor_area_ids = {sa.area_id for sa in contractor.service_areas}
+    
+    if not contractor_area_ids:
         raise HTTPException(
             status_code=400,
-            detail="Complaint location could not be determined. Cannot validate service-area match.",
+            detail="Contractor has no configured service areas."
+        )
+
+    # Check if ANY of the contractor's service areas is in the complaint's ancestors
+    if not complaint_ancestor_ids.intersection(contractor_area_ids):
+        raise HTTPException(
+            status_code=400,
+            detail="Contractor's service areas do not cover the complaint location."
         )
 
     # Create or update Assignment
@@ -312,20 +351,36 @@ def list_contractors(
 ):
     _require_authority(current_user)
 
-    query = db.query(models.User).filter(models.User.role == "contractor")
+    query = db.query(models.User).filter(models.User.role == "contractor").order_by(models.User.name)
+    all_contractors = query.all()
 
-    # If complaint_id is provided, filter by service area match
+    def format_contractor(c: models.User) -> dict:
+        return {
+            "id": c.id,
+            "name": c.name,
+            "email": c.email,
+            "role": c.role,
+            "service_areas": [sa.area for sa in c.service_areas if sa.area]
+        }
+
+    # If complaint_id is provided, filter by hierarchical service area match
     if complaint_id is not None:
         complaint = db.query(models.Complaint).filter(models.Complaint.id == complaint_id).first()
-        if complaint:
-            city = _extract_city_from_address(complaint.address)
-            if city:
-                query = query.filter(
-                    models.User.service_area.ilike(city)
-                )
+        if complaint and complaint.location_area_id:
+            complaint_ancestor_ids = _get_ancestor_ids(db, complaint.location_area_id)
+            
+            eligible_contractors = []
+            for contractor in all_contractors:
+                contractor_area_ids = {sa.area_id for sa in contractor.service_areas}
+                if complaint_ancestor_ids.intersection(contractor_area_ids):
+                    eligible_contractors.append(format_contractor(contractor))
+            
+            return eligible_contractors
+        else:
+            # If complaint has no location_area_id, no contractors are eligible
+            return []
 
-    contractors = query.order_by(models.User.name).all()
-    return contractors
+    return [format_contractor(c) for c in all_contractors]
 
 
 # ── POST /api/complaints/{id}/evidence ────────────────────────────────────────

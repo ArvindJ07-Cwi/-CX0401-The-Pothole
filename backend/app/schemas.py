@@ -7,6 +7,16 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
 
+class GeographicAreaResponse(BaseModel):
+    id: int
+    name: str
+    level: str
+    parent_id: Optional[int] = None
+    full_path: str
+
+    class Config:
+        from_attributes = True
+
 class UserBase(BaseModel):
     name: str
     email: EmailStr
@@ -14,12 +24,11 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
     role: str
-    service_area: Optional[str] = None
+    service_area_ids: Optional[list[int]] = None
 
 class UserResponse(UserBase):
     id: int
     role: str
-    service_area: Optional[str] = None
     created_at: datetime
     
     class Config:
@@ -47,6 +56,7 @@ class RepairEvidenceResponse(BaseModel):
 class AssignmentResponse(BaseModel):
     contractor_id: int
     contractor_name: Optional[str] = None
+    contractor_email: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -66,6 +76,7 @@ class ComplaintResponse(BaseModel):
     citizen_id: int
     repair_evidence: Optional[RepairEvidenceResponse] = None
     assignment: Optional[AssignmentResponse] = None
+    location_area: Optional[GeographicAreaResponse] = None
 
     class Config:
         from_attributes = True
@@ -75,7 +86,7 @@ class ContractorListItem(BaseModel):
     name: str
     email: str
     role: str
-    service_area: Optional[str] = None
+    service_areas: list[GeographicAreaResponse] = []
 
     class Config:
         from_attributes = True

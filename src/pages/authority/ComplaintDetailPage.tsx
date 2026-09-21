@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowLeft, Check, CheckCircle2, HelpCircle, Loader2, UserCheck, XCircle } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Check, CheckCircle2, HelpCircle, Loader2, MapPin, UserCheck, XCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
@@ -6,7 +6,8 @@ import SeverityBadge from '../../components/ui/SeverityBadge';
 import StatusBadge from '../../components/ui/StatusBadge';
 import { useRole } from '../../context/RoleContext';
 import { useAuth } from '../../context/AuthContext';
-import type { Complaint } from '../../types';
+import type { Complaint, GeographicArea } from '../../types';
+import LocationSelector from '../../components/ui/LocationSelector';
 
 const API = 'http://localhost:8000';
 
@@ -38,7 +39,9 @@ function mapComplaint(c: any): Complaint {
     afterPhotoUrl: evidence.after_image_path ? `${API}${evidence.after_image_path}` : undefined,
     repairNote: evidence.repair_notes ?? undefined,
     updatedAt: c.updated_at,
+    locationArea: c.location_area,
     contractorName: assignment.contractor_name || evidence.contractor_name || undefined,
+    contractorEmail: assignment.contractor_email || undefined,
     assignedTo: assignment.contractor_id ? String(assignment.contractor_id) : undefined,
   };
 }
@@ -51,6 +54,8 @@ export default function ComplaintDetailPage() {
 
   const [complaint, setComplaint] = useState<Complaint | null>(null);
   const [contractors, setContractors] = useState<ApiContractor[]>([]);
+  const [areas, setAreas] = useState<GeographicArea[]>([]);
+  const [selectedLocationAreaId, setSelectedLocationAreaId] = useState<number | null>(null);
   const [selectedContractorId, setSelectedContractorId] = useState('');
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState('');
@@ -59,14 +64,14 @@ export default function ComplaintDetailPage() {
 
   const isAuthority = role === 'authority';
 
-  // Fetch complaint and (for authority) contractors in parallel
+  // Fetch complaint, contractors, and areas in parallel
   useEffect(() => {
     if (!id || !token) return;
 
     async function load() {
       setLoading(true);
       try {
-        const [complaintRes, contractorsRes] = await Promise.all([
+        const [complaintRes, contractorsRes, areasRes] = await Promise.all([
           axios.get(`${API}/api/complaints/${id}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
@@ -75,9 +80,14 @@ export default function ComplaintDetailPage() {
                 headers: { Authorization: `Bearer ${token}` },
               })
             : Promise.resolve({ data: [] }),
+          isAuthority
+            ? axios.get(`${API}/api/geo/areas`)
+            : Promise.resolve({ data: [] }),
         ]);
+
         setComplaint(mapComplaint(complaintRes.data));
         setContractors(contractorsRes.data);
+        setAreas(areasRes.data);
       } catch (err: any) {
         if (err.response?.status === 404) {
           setFetchError('Complaint not found.');
@@ -107,6 +117,29 @@ export default function ComplaintDetailPage() {
       setActionState('success');
     } catch {
       setActionError('Failed to update status. Please try again.');
+      setActionState('idle');
+    }
+  }
+
+  async function handleClassifyLocation() {
+    if (!complaint || !selectedLocationAreaId) return;
+    setActionState('loading');
+    setActionError('');
+    try {
+      const res = await axios.patch(
+        `${API}/api/complaints/${complaint.id}/location`,
+        { location_area_id: selectedLocationAreaId },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setComplaint(mapComplaint(res.data));
+      // Reload contractors now that it has a location
+      const contRes = await axios.get(`${API}/api/contractors?complaint_id=${complaint.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setContractors(contRes.data);
+      setActionState('success');
+    } catch {
+      setActionError('Failed to update location area.');
       setActionState('idle');
     }
   }
@@ -321,7 +354,9 @@ export default function ComplaintDetailPage() {
             <div>
               <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Location</p>
               <p className="text-sm text-slate-700 mt-0.5">{complaint.location.address}</p>
-              {complaint.location.ward && <p className="text-xs text-slate-500 mt-0.5">{complaint.location.ward}</p>}
+              {complaint.locationArea && (
+                <p className="text-xs font-medium text-blue-600 mt-1">{complaint.locationArea.full_path}</p>
+              )}
               {complaint.location.coordinates.lat !== 0 && (
                 <p className="text-[11px] text-slate-400 mt-1">
                   {complaint.location.coordinates.lat.toFixed(5)}, {complaint.location.coordinates.lng.toFixed(5)}
@@ -338,40 +373,68 @@ export default function ComplaintDetailPage() {
             </div>
           </div>
 
-          {/* Assign Contractor Panel (authority, pending) */}
+          {/* Assign Contractor or Classify Location Panel (authority, pending) */}
           {canAssign && (
-            <div className="bg-white rounded-xl border border-blue-200 overflow-hidden shadow-sm">
-              <div className="bg-blue-50 px-5 py-3 border-b border-blue-100">
-                <h3 className="text-blue-800 font-semibold text-sm">Assign Contractor</h3>
-                <p className="text-blue-600 text-xs mt-0.5">Select a contractor for this complaint</p>
+            !complaint.locationArea ? (
+              <div className="bg-amber-50 rounded-xl border border-amber-200 overflow-hidden shadow-sm">
+                <div className="bg-amber-100/50 px-5 py-3 border-b border-amber-200">
+                  <h3 className="text-amber-800 font-semibold text-sm">Unclassified Location</h3>
+                  <p className="text-amber-600 text-xs mt-0.5">Please classify the location before assigning</p>
+                </div>
+                <div className="p-5 space-y-4">
+                  <LocationSelector
+                    areas={areas}
+                    selectedIds={selectedLocationAreaId ? [selectedLocationAreaId] : []}
+                    onChange={(ids) => setSelectedLocationAreaId(ids[0] || null)}
+                    multiSelect={false}
+                  />
+                  {actionError && (
+                    <p className="text-xs text-red-600">{actionError}</p>
+                  )}
+                  <button
+                    onClick={handleClassifyLocation}
+                    disabled={!selectedLocationAreaId || actionState === 'loading'}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-300 text-white rounded-lg transition-colors text-sm font-medium"
+                  >
+                    {actionState === 'loading' ? <Loader2 size={15} className="animate-spin" /> : <MapPin size={15} />}
+                    {actionState === 'loading' ? 'Saving...' : 'Set Location'}
+                  </button>
+                </div>
               </div>
-              <div className="p-5 space-y-3">
-                <select
-                  value={selectedContractorId}
-                  onChange={(e) => setSelectedContractorId(e.target.value)}
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700"
-                >
-                  <option value="">Select contractor…</option>
-                  {contractors.map((c) => (
-                    <option key={c.id} value={String(c.id)}>{c.name}</option>
-                  ))}
-                </select>
-                {contractors.length === 0 && (
-                  <p className="text-xs text-slate-400 italic">No contractors registered yet.</p>
-                )}
-                {actionError && (
-                  <p className="text-xs text-red-600">{actionError}</p>
-                )}
-                <button
-                  onClick={handleAssign}
-                  disabled={!selectedContractorId || actionState === 'loading'}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white rounded-lg transition-colors text-sm font-medium"
-                >
-                  {actionState === 'loading' ? <Loader2 size={15} className="animate-spin" /> : <UserCheck size={15} />}
-                  {actionState === 'loading' ? 'Assigning…' : 'Assign Contractor'}
-                </button>
+            ) : (
+              <div className="bg-white rounded-xl border border-blue-200 overflow-hidden shadow-sm">
+                <div className="bg-blue-50 px-5 py-3 border-b border-blue-100">
+                  <h3 className="text-blue-800 font-semibold text-sm">Assign Contractor</h3>
+                  <p className="text-blue-600 text-xs mt-0.5">Select a contractor for this complaint</p>
+                </div>
+                <div className="p-5 space-y-3">
+                  <select
+                    value={selectedContractorId}
+                    onChange={(e) => setSelectedContractorId(e.target.value)}
+                    className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700"
+                  >
+                    <option value="">Select contractor...</option>
+                    {contractors.map((c) => (
+                      <option key={c.id} value={String(c.id)}>{c.name}</option>
+                    ))}
+                  </select>
+                  {contractors.length === 0 && (
+                    <p className="text-xs text-slate-400 italic">No eligible contractors found for this area.</p>
+                  )}
+                  {actionError && (
+                    <p className="text-xs text-red-600">{actionError}</p>
+                  )}
+                  <button
+                    onClick={handleAssign}
+                    disabled={!selectedContractorId || actionState === 'loading'}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white rounded-lg transition-colors text-sm font-medium"
+                  >
+                    {actionState === 'loading' ? <Loader2 size={15} className="animate-spin" /> : <UserCheck size={15} />}
+                    {actionState === 'loading' ? 'Assigning...' : 'Assign Contractor'}
+                  </button>
+                </div>
               </div>
-            </div>
+            )
           )}
 
           {/* Municipal Review Panel (submitted / flagged) */}

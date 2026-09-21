@@ -3,11 +3,13 @@ CX0401 Backend – SQLAlchemy ORM models.
 
 Tables
 ------
-users              – citizen / contractor / authority accounts
-complaints         – pothole reports filed by citizens
-assignments        – links a complaint to a contractor (by an authority)
-repair_evidence    – after-photo + notes submitted by contractor
-verification_results – AI check outcomes + municipal review
+geographic_areas       – hierarchical location tree (state → region → city → locality)
+contractor_service_areas – many-to-many: contractors ↔ geographic areas
+users                  – citizen / contractor / authority accounts
+complaints             – pothole reports filed by citizens
+assignments            – links a complaint to a contractor (by an authority)
+repair_evidence        – after-photo + notes submitted by contractor
+verification_results   – AI check outcomes + municipal review
 """
 
 import datetime
@@ -18,6 +20,44 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 
 from app.database import Base
+
+
+# ── Geographic Areas ───────────────────────────────────────────────────────────
+
+class GeographicArea(Base):
+    __tablename__ = "geographic_areas"
+
+    id        = Column(Integer, primary_key=True, index=True)
+    name      = Column(String(120), nullable=False)
+    level     = Column(
+        SAEnum("state", "region", "city", "locality", name="geo_level"),
+        nullable=False,
+    )
+    parent_id = Column(Integer, ForeignKey("geographic_areas.id"), nullable=True, index=True)
+    full_path = Column(String(500), nullable=False)  # e.g. "Maharashtra > Pune Region > Pune City"
+
+    # relationships
+    parent   = relationship("GeographicArea", remote_side=[id], backref="children")
+
+    def __repr__(self) -> str:
+        return f"<GeographicArea id={self.id} name={self.name!r} level={self.level}>"
+
+
+# ── Contractor Service Areas (junction) ────────────────────────────────────────
+
+class ContractorServiceArea(Base):
+    __tablename__ = "contractor_service_areas"
+
+    id            = Column(Integer, primary_key=True, index=True)
+    contractor_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    area_id       = Column(Integer, ForeignKey("geographic_areas.id"), nullable=False, index=True)
+
+    # relationships
+    contractor = relationship("User", back_populates="service_areas")
+    area       = relationship("GeographicArea")
+
+    def __repr__(self) -> str:
+        return f"<ContractorServiceArea contractor={self.contractor_id} area={self.area_id}>"
 
 
 # ── Users ──────────────────────────────────────────────────────────────────────
@@ -34,7 +74,7 @@ class User(Base):
         nullable=False,
         default="citizen",
     )
-    service_area = Column(String(120), nullable=True)  # e.g. "Pune", "Mumbai" — used for contractors
+    service_area = Column(String(120), nullable=True)  # LEGACY — kept for backward compat
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     # relationships
@@ -42,6 +82,7 @@ class User(Base):
     assignments_as_contractor = relationship("Assignment", back_populates="contractor", foreign_keys="Assignment.contractor_id")
     assignments_as_authority  = relationship("Assignment", back_populates="authority", foreign_keys="Assignment.authority_id")
     repair_evidence = relationship("RepairEvidence", back_populates="contractor")
+    service_areas   = relationship("ContractorServiceArea", back_populates="contractor")
 
     def __repr__(self) -> str:
         return f"<User id={self.id} email={self.email!r} role={self.role}>"
@@ -74,11 +115,13 @@ class Complaint(Base):
         default="pending",
     )
     before_image_path = Column(String(500), nullable=True)
+    location_area_id  = Column(Integer, ForeignKey("geographic_areas.id"), nullable=True, index=True)
     created_at  = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at  = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
     # relationships
     citizen     = relationship("User", back_populates="complaints", foreign_keys=[citizen_id])
+    location_area = relationship("GeographicArea")
     assignment  = relationship("Assignment", back_populates="complaint", uselist=False)
     repair_evidence    = relationship("RepairEvidence", back_populates="complaint", uselist=False)
     verification_result = relationship("VerificationResult", back_populates="complaint", uselist=False)
